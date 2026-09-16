@@ -6,6 +6,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
@@ -88,6 +89,48 @@ export default function Login() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL ?? "http://localhost:5000/api"}/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ email, password }),
+        },
+      );
+
+      const result = (await response.json()) as {
+        message?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(result.message ?? "Unable to sign in");
+      }
+
+      navigate("/onboarding/resume");
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Unable to sign in",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -574,10 +617,7 @@ export default function Login() {
                         },
                       }}
                       className="relative z-10 mt-9 space-y-5"
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        navigate("/onboarding/resume");
-                      }}
+                      onSubmit={handleSubmit}
                     >
                       <motion.label
                         variants={{
@@ -601,8 +641,10 @@ export default function Login() {
 
                         <input
                           type="email"
-                          defaultValue="vedaant@vit.ac.in"
+                          value={email}
+                          onChange={(event) => setEmail(event.target.value)}
                           placeholder="you@example.com"
+                          required
                           className="w-full rounded-xl border border-white/[0.10] bg-[#121212]/55 px-4 py-3.5 text-sm text-primary outline-none backdrop-blur-md transition-all duration-200 placeholder:text-secondary/40 hover:border-white/[0.16] focus:border-accent focus:bg-[#121212]/70 focus:ring-4 focus:ring-accent/10"
                         />
                       </motion.label>
@@ -641,8 +683,10 @@ export default function Login() {
                             type={
                               showPassword ? "text" : "password"
                             }
-                            defaultValue="password"
+                            value={password}
+                            onChange={(event) => setPassword(event.target.value)}
                             placeholder="Enter your password"
+                            required
                             className="w-full rounded-xl border border-white/[0.10] bg-[#121212]/55 px-4 py-3.5 pr-12 text-sm text-primary outline-none backdrop-blur-md transition-all duration-200 placeholder:text-secondary/40 hover:border-white/[0.16] focus:border-accent focus:bg-[#121212]/70 focus:ring-4 focus:ring-accent/10"
                           />
 
@@ -708,11 +752,18 @@ export default function Login() {
                           },
                         }}
                       >
+                        {error && (
+                          <p role="alert" className="mb-4 text-sm text-accent">
+                            {error}
+                          </p>
+                        )}
+
                         <Button
                           type="submit"
+                          disabled={isSubmitting}
                           className="group flex w-full items-center justify-center gap-2 py-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(218,34,75,0.24)]"
                         >
-                          <span>Continue</span>
+                          <span>{isSubmitting ? "Signing in..." : "Continue"}</span>
 
                           <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                         </Button>

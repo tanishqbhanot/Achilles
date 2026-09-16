@@ -19,8 +19,9 @@ export default function ResumeUpload() {
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [error, setError] = useState("");
 
-  function processFile(file: File) {
+  async function processFile(file: File) {
     const allowedExtensions = [".pdf", ".doc", ".docx"];
     const lowerName = file.name.toLowerCase();
 
@@ -29,23 +30,53 @@ export default function ResumeUpload() {
     );
 
     if (!isValid) {
+      setError("Please upload a PDF, DOC or DOCX file.");
       return;
     }
 
     setSelectedFile(file);
+    setError("");
     setPhase("absorbing");
 
-    window.setTimeout(() => {
+    const analyzingTimer = window.setTimeout(() => {
       setPhase("analyzing");
     }, 900);
 
-    window.setTimeout(() => {
-      setPhase("done");
-    }, 2100);
+    try {
+      const formData = new FormData();
+      formData.append("resume", file);
 
-    window.setTimeout(() => {
-      navigate("/onboarding/skills");
-    }, 2800);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL ?? "http://localhost:5000/api"}/resumes`,
+        {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        },
+      );
+
+      const result = (await response.json()) as {
+        message?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(result.message ?? "Unable to upload your resume");
+      }
+
+      window.clearTimeout(analyzingTimer);
+      setPhase("done");
+      window.setTimeout(() => {
+        navigate("/onboarding/skills");
+      }, 700);
+    } catch (uploadError) {
+      window.clearTimeout(analyzingTimer);
+      setPhase("idle");
+      setError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : "Unable to upload your resume",
+      );
+    }
   }
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -345,6 +376,12 @@ export default function ResumeUpload() {
                 )}
               </AnimatePresence>
             </motion.div>
+
+            {error && (
+              <p className="mt-4 text-center text-sm text-[#ff8ca5]" role="alert">
+                {error}
+              </p>
+            )}
 
             {/* Manual option */}
             {!isProcessing && (

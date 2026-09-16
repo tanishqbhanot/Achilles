@@ -4,12 +4,13 @@ import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/auth.routes";
 import { errorHandler } from "./middleware/error.middleware";
+import resumeRoutes from "./routes/resume.routes";
 
 const app = express();
 
 app.use(cors({
-    origin: "http://localhost:5173",
-    credentials: true
+  origin: "http://localhost:5173",
+  credentials: true
 }));
 
 app.use(express.json());
@@ -18,6 +19,7 @@ app.use(cookieParser());
 app.use(errorHandler);
 
 app.use("/api/auth", authRoutes);
+app.use("/api/resumes", resumeRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.status(200).json({

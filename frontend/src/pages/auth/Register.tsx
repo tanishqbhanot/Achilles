@@ -1,6 +1,8 @@
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import { useState } from "react";
+import type { FormEvent } from "react";
 
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
@@ -38,6 +40,49 @@ const secondaryCode = [
 
 export default function Register() {
   const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL ?? "http://localhost:5000/api"}/auth/signup`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ name, email, password }),
+        },
+      );
+
+      const result = (await response.json()) as {
+        message?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(result.message ?? "Unable to create your account");
+      }
+
+      navigate("/onboarding/resume");
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Unable to create your account",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#121212] text-primary">
@@ -444,10 +489,7 @@ export default function Register() {
               {/* FORM */}
               <form
                 className="relative z-10 mt-9 flex flex-col gap-5"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  navigate("/onboarding/resume");
-                }}
+                onSubmit={handleSubmit}
               >
                 {/* Full name */}
                 <label className="block text-sm">
@@ -457,8 +499,10 @@ export default function Register() {
 
                   <input
                     type="text"
-                    defaultValue="Vedaant Agarwal"
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
                     placeholder="Your full name"
+                    required
                     className="
                       w-full
                       rounded-xl
@@ -491,8 +535,10 @@ export default function Register() {
 
                   <input
                     type="email"
-                    defaultValue="vedaant@vit.ac.in"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
                     placeholder="you@example.com"
+                    required
                     className="
                       w-full
                       rounded-xl
@@ -525,8 +571,11 @@ export default function Register() {
 
                   <input
                     type="password"
-                    defaultValue="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
                     placeholder="Create a password"
+                    minLength={8}
+                    required
                     className="
                       w-full
                       rounded-xl
@@ -551,9 +600,16 @@ export default function Register() {
                   />
                 </label>
 
+                {error && (
+                  <p role="alert" className="text-sm text-accent">
+                    {error}
+                  </p>
+                )}
+
                 {/* Create account */}
                 <Button
                   type="submit"
+                  disabled={isSubmitting}
                   className="
                     group
                     mt-1
@@ -569,7 +625,7 @@ export default function Register() {
                     hover:shadow-[0_12px_34px_rgba(218,34,75,0.24)]
                   "
                 >
-                  Create account
+                  {isSubmitting ? "Creating account..." : "Create account"}
 
                   <ArrowRight
                     className="
