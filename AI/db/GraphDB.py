@@ -1,5 +1,8 @@
 from langchain_neo4j import Neo4jGraph
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 graph = Neo4jGraph(
     url=os.environ.get("NEO4J_URI", "neo4j://127.0.0.1:7687"),
