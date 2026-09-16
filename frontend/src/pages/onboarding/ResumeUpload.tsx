@@ -46,6 +46,7 @@ export default function ResumeUpload() {
       const formData = new FormData();
       formData.append("resume", file);
 
+      // 1. Upload resume
       const response = await fetch(
         `${import.meta.env.VITE_API_URL ?? "http://localhost:5000/api"}/resumes`,
         {
@@ -63,14 +64,88 @@ export default function ResumeUpload() {
         throw new Error(result.message ?? "Unable to upload your resume");
       }
 
+      // 2. Get the authenticated user's resume S3 key
+      const s3KeyResponse = await fetch(
+        `${import.meta.env.VITE_API_URL ?? "http://localhost:5000/api"}/resumes`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      );
+
+      const s3KeyResult = (await s3KeyResponse.json()) as {
+        success?: boolean;
+        s3Key?: string;
+        message?: string;
+      };
+
+      if (!s3KeyResponse.ok || !s3KeyResult.s3Key) {
+        throw new Error(
+          s3KeyResult.message ?? "Unable to retrieve resume information",
+        );
+      }
+
+      // 3. Get current user
+      const meResponse = await fetch(
+        `${import.meta.env.VITE_API_URL ?? "http://localhost:5000/api"}/auth/me`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      );
+
+      const meResult = (await meResponse.json()) as {
+        success?: boolean;
+        user?: {
+          id: string;
+        };
+        message?: string;
+      };
+
+      if (!meResponse.ok || !meResult.user?.id) {
+        throw new Error(
+          meResult.message ?? "Unable to retrieve user information",
+        );
+      }
+
+      const userId = meResult.user.id;
+      const s3Key = s3KeyResult.s3Key;
+
+      // 4. Send userId + s3Key to your arbitrary API
+      const processResponse = await fetch(
+        `https://underground-alloy-crossing-stunning.trycloudflare.com/${userId}/docs`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            s3_key: s3Key,
+          }),
+        },
+      );
+
+      const processResult = (await processResponse.json()) as {
+        message?: string;
+      };
+
+      if (!processResponse.ok) {
+        throw new Error(
+          processResult.message ?? "Unable to start resume processing",
+        );
+      }
+
       window.clearTimeout(analyzingTimer);
       setPhase("done");
+
       window.setTimeout(() => {
         navigate("/onboarding/skills");
       }, 700);
     } catch (uploadError) {
       window.clearTimeout(analyzingTimer);
       setPhase("idle");
+
       setError(
         uploadError instanceof Error
           ? uploadError.message

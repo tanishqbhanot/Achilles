@@ -1,6 +1,6 @@
 import { Response } from "express";
 import { AuthRequest } from "../middleware/auth.middleware";
-import { uploadResume } from "../services/upload.service";
+import { uploadResume, getResumeS3Key } from "../services/upload.service";
 
 export const uploadResumeController = async (
   req: AuthRequest,
@@ -47,6 +47,43 @@ export const uploadResumeController = async (
     res.status(500).json({
       success: false,
       message: "Failed to upload resume",
+    });
+  }
+};
+
+export const getResumeS3KeyController = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+      return;
+    }
+
+    const s3Key = await getResumeS3Key(req.user.id);
+
+    if (!s3Key) {
+      res.status(404).json({
+        success: false,
+        message: "Resume not found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      s3Key,
+    });
+  } catch (error) {
+    console.error("Get resume error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to get resume",
     });
   }
 };

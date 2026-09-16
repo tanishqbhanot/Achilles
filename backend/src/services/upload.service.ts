@@ -7,6 +7,16 @@ import { randomUUID } from "crypto";
 import { s3Client } from "../config/s3";
 import { Resume } from "../models/Resume";
 
+export const getResumeS3Key = async (
+  userId: string
+): Promise<string | null> => {
+  const resume = await Resume.findOne({ userId })
+    .sort({ version: -1 })
+    .select("s3Key");
+
+  return resume?.s3Key ?? null;
+};
+
 interface UploadResumeInput {
   userId: string;
   file: Express.Multer.File;
