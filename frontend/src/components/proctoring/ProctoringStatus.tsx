@@ -1,4 +1,4 @@
-import type { ProctoringEvent } from "../services/proctoring.service";
+import type { ProctoringEvent } from "../../services/proctoring.service";
 
 interface ProctoringStatusProps {
   cameraActive: boolean;

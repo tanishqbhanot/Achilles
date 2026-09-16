@@ -6,6 +6,7 @@ import type { FormEvent } from "react";
 
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
+import GoogleAuthButton from "../../components/auth/GoogleAuthButton";
 
 const codeLines = [
   "const candidate = createProfile();",
@@ -45,6 +46,41 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleGoogleCredential = async (credential: string) => {
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL ?? "http://localhost:5000/api"}/auth/google`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ credential }),
+        },
+      );
+
+      const result = (await response.json()) as { message?: string };
+
+      if (!response.ok) {
+        throw new Error(result.message ?? "Unable to sign in with Google");
+      }
+
+      navigate("/onboarding/resume");
+    } catch (googleError) {
+      setError(
+        googleError instanceof Error
+          ? googleError.message
+          : "Unable to sign in with Google",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -652,36 +688,10 @@ export default function Register() {
 
               {/* Google only */}
               <div className="relative z-10">
-                <button
-                  type="button"
-                  className="
-                    flex
-                    w-full
-                    items-center
-                    justify-center
-                    gap-2
-                    rounded-xl
-                    border
-                    border-white/[0.09]
-                    bg-[#121212]/50
-                    px-4
-                    py-3
-                    text-sm
-                    font-medium
-                    text-primary
-                    backdrop-blur-md
-                    transition-all
-                    duration-200
-                    hover:border-white/[0.17]
-                    hover:bg-white/[0.04]
-                  "
-                >
-                  <span className="text-sm font-semibold">
-                    G
-                  </span>
-
-                  Continue with Google
-                </button>
+                <GoogleAuthButton
+                  onCredential={handleGoogleCredential}
+                  onError={setError}
+                />
               </div>
 
               {/* Login */}

@@ -401,7 +401,7 @@ export const mockAssessment = {
     {
       id: "q1",
       title: "Two Sum",
-      difficulty: "Easy" as Difficulty,
+      difficulty: "Easy",
 
       description:
         "Given an array of integers nums and an integer target, return the indices of the two numbers such that they add up to target.",
@@ -471,7 +471,7 @@ public:
     {
       id: "q2",
       title: "Valid Parentheses",
-      difficulty: "Easy" as Difficulty,
+      difficulty: "Easy",
 
       description:
         "Given a string containing brackets '(', ')', '{', '}', '[' and ']', determine whether the input string is valid.",
