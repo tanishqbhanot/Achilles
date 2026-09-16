@@ -7,10 +7,11 @@ import os
 
 
 class GraphPipeline:
-    def __init__(self, file_name="GS.pdf"):
+    def __init__(self, file_name="GS.pdf", user_id="person_123"):
         self.extractor = ExtractDocuments(file_name=file_name)
         self.result = self.extractor.extract_sections()
         self.llm = llm
+        self.user_id = user_id
 
 
     def route_section(self, name: str):
@@ -135,10 +136,7 @@ class GraphPipeline:
         extracted = self.extract_all_sections(self.result, self.llm)
         print(extracted.keys())   # sanity check before writing
 
-        self.write_person_graph(graph, "person_234", extracted)
+        self.write_person_graph(graph, self.user_id, extracted)
 
         print(graph.query("MATCH (n) RETURN labels(n) AS labels, count(*) AS c"))
 
-
-gp = GraphPipeline("tanishq.pdf")
-gp.execute()

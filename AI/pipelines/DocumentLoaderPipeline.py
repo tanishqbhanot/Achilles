@@ -23,21 +23,26 @@ class ExtractDocuments:
         self.text = self.loader.load()
         self.resume = self.text[0].page_content
 
-
     def extract_sections(self):
-
-
 
         new_llm = llm.with_structured_output(
             Extractor,
-            method="json_schema",
+            method="json_mode",
         )
 
         prompt = ChatPromptTemplate.from_template("""
         Read the resume and divide it into its different sections.
 
-        For every section:
-        - Use the section's name as the key.
+        Return ONLY a valid JSON object in this exact format:
+
+        {{
+            "sections": {{
+                "Section Name": "Complete original text of that section"
+            }}
+        }}
+
+        Rules:
+        - Use the section's actual name as the key.
         - Put the COMPLETE ORIGINAL TEXT belonging to that section as the value.
         - Do NOT summarize.
         - Do NOT paraphrase.
@@ -46,9 +51,9 @@ class ExtractDocuments:
         bullet point, technology, date, and other information belonging to that section.
         - Determine where a section starts and ends from the resume structure.
         - Do not move content between sections.
-
-        For example, if there are 4 projects, the "Projects" value must contain
-        ALL 4 projects and ALL of their associated text.
+        - If there are multiple projects, include ALL projects in the "Projects" value.
+        - Do not include markdown fences such as ```json.
+        - Return valid JSON only.
 
         Resume:
         {resume}
