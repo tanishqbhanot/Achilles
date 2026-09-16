@@ -1,4 +1,13 @@
 # Logs
+
+*.mp3
+*.mp4
+*.m4a
+
+.pdf
+.docx
+
+
 logs
 *.log
 npm-debug.log*
@@ -7,8 +16,6 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
-.pdf*
-.docx*
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
@@ -118,10 +125,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-
-# Ignore redis binary dump (dump.rdb) files
-
-*.rdb
 
 .DS_*
 *.log
@@ -277,4 +280,10 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# End of https://mrkandreev.name/snippets/gitignore-generator/#Node,Redis,react,Python
+# React Native Stack Base
+
+.expo
+__generated__
+
+# End of https://mrkandreev.name/snippets/gitignore-generator/#Node,react,Python,ReactNative
+
