@@ -13,6 +13,7 @@ import SkillDetail from "./pages/dashboard/SkillDetail";
 import Profile from "./pages/profile/Profile";
 
 import AssessmentIntro from "./pages/assessment/AssessmentIntro";
+import SystemRequirements from "./pages/assessment/SystemRequirements";
 import DsaAssessment from "./pages/assessment/DsaAssessment";
 import TechnicalQuiz from "./pages/assessment/TechnicalQuiz";
 import ProjectAssessment from "./pages/assessment/ProjectAssessment";
@@ -43,6 +44,10 @@ function App() {
 
         <Route element={<AssessmentLayout />}>
           <Route path="/assessment" element={<AssessmentIntro />} />
+          <Route
+  path="/assessment/system-check"
+  element={<SystemRequirements />}
+/>
           <Route path="/assessment/dsa" element={<DsaAssessment />} />
           <Route path="/assessment/quiz" element={<TechnicalQuiz />} />
           <Route path="/assessment/project" element={<ProjectAssessment />} />
