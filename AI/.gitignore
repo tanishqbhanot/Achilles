@@ -4,8 +4,8 @@
 *.mp4
 *.m4a
 
-.pdf
-.docx
+*.pdf
+*.docx
 
 
 logs
