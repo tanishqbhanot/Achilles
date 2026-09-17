@@ -1,7 +1,7 @@
 import mongoose, {Document, Schema} from "mongoose";
 
 export interface IUser extends Document {
-      name: string;
+  name: string;
   email: string;
   password?: string;
   googleId?: string;
@@ -10,6 +10,7 @@ export interface IUser extends Document {
   avatar?: string;
   createdAt: Date;
   updatedAt: Date;
+  skills?: string[];
 }
 
 const UserSchema = new Schema<IUser>(
@@ -53,6 +54,11 @@ const UserSchema = new Schema<IUser>(
 
     avatar: {
       type: String,
+    },
+
+    skills: {
+      type: [String],
+      default: [],
     },
   },
   {

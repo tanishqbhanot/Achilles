@@ -226,5 +226,6 @@ export const useProctoring = () => {
     videoRef,
     startProctoring,
     stopProctoring,
+    stream: streamRef.current
   };
 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   AlertTriangle,
   Camera,
@@ -20,7 +20,14 @@ export default function SecurityIndicator() {
     violationCount,
     startProctoring,
     videoRef,
+    stream,
   } = useProctoring();
+
+  useEffect(() => {
+    if (open && videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [open, stream, videoRef]);
 
   const handleStartSecurity = async () => {
     try {
@@ -48,18 +55,16 @@ export default function SecurityIndicator() {
 
           setOpen((v) => !v);
         }}
-        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${
-          securityActive
+        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${securityActive
             ? "border-accent/40 bg-accent/10 text-accent"
             : "border-white/10 bg-white/5 text-secondary"
-        }`}
+          }`}
       >
         <span
-          className={`h-1.5 w-1.5 rounded-full ${
-            securityActive
+          className={`h-1.5 w-1.5 rounded-full ${securityActive
               ? "bg-accent"
               : "bg-white/40"
-          }`}
+            }`}
         />
 
         {securityActive

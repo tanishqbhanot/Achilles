@@ -113,7 +113,7 @@ export default function ResumeUpload() {
 
       // 4. Send userId + s3Key to your arbitrary API
       const processResponse = await fetch(
-        `https://underground-alloy-crossing-stunning.trycloudflare.com/${userId}/docs`,
+        `https://mounted-infrastructure-sacred-hierarchy.trycloudflare.com/${userId}/docs`,
         {
           method: "POST",
           headers: {
@@ -129,6 +129,8 @@ export default function ResumeUpload() {
       const processResult = (await processResponse.json()) as {
         message?: string;
       };
+
+      console.log("Resume processing result:", processResult);
 
       if (!processResponse.ok) {
         throw new Error(
