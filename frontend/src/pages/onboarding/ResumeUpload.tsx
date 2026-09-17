@@ -19,6 +19,7 @@ export default function ResumeUpload() {
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   function processFile(file: File) {
     const allowedExtensions = [".pdf", ".doc", ".docx"];
@@ -44,7 +45,11 @@ export default function ResumeUpload() {
     }, 2100);
 
     window.setTimeout(() => {
-      navigate("/onboarding/skills");
+      setIsTransitioning(true);
+    }, 2350);
+
+    window.setTimeout(() => {
+      navigate("/dashboard");
     }, 2800);
   }
 
@@ -105,7 +110,18 @@ export default function ResumeUpload() {
     phase === "done";
 
   return (
-    <div className="min-h-screen bg-[#0b0b0d] text-white">
+    <motion.div
+      animate={
+        isTransitioning
+          ? { opacity: 0, y: -10 }
+          : { opacity: 1, y: 0 }
+      }
+      transition={{
+        duration: 0.42,
+        ease: "easeInOut",
+      }}
+      className="min-h-screen bg-[#0b0b0d] text-white"
+    >
       <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-7 md:px-10">
         {/* Header */}
         <header className="flex items-center justify-between border-b border-white/[0.07] pb-6">
@@ -390,6 +406,6 @@ export default function ResumeUpload() {
           <div className="h-1 w-10 rounded-full bg-white/[0.10]" />
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

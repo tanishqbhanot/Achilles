@@ -1,0 +1,1073 @@
+import { useNavigate, Link } from "react-router-dom";
+import {
+  motion,
+  AnimatePresence,
+} from "framer-motion";
+import {
+  ArrowRight,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+
+import Button from "../../components/ui/Button";
+import Card from "../../components/ui/Card";
+
+const codeLines = [
+  {
+    text: "const candidates = await fetchCandidates();",
+    color: "text-[#9E9E9E]",
+    indent: "0rem",
+  },
+  {
+    text: "const assessments = await fetchAssessments();",
+    color: "text-[#A6A6A6]",
+    indent: "1.5rem",
+  },
+  {
+    text: "const results = evaluateCandidates(assessments);",
+    color: "text-[#929292]",
+    indent: "1.5rem",
+  },
+  {
+    text: "const shortlist = rankCandidates({",
+    color: "text-[#9E9E9E]",
+    indent: "1.5rem",
+  },
+  {
+    text: "skills: results.skills,",
+    color: "text-[#7F7F7F]",
+    indent: "3rem",
+  },
+  {
+    text: "coding: results.coding,",
+    color: "text-[#7F7F7F]",
+    indent: "3rem",
+  },
+  {
+    text: "projects: results.projects,",
+    color: "text-[#7F7F7F]",
+    indent: "3rem",
+  },
+  {
+    text: "});",
+    color: "text-[#9E9E9E]",
+    indent: "1.5rem",
+  },
+  {
+    text: "compareCandidates(shortlist);",
+    color: "text-[#B0B0B0]",
+    indent: "1.5rem",
+  },
+  {
+    text: "identifyStrongestProfiles();",
+    color: "text-[#8F8F8F]",
+    indent: "0rem",
+  },
+  {
+    text: "reviewAssessmentEvidence();",
+    color: "text-[#8A8A8A]",
+    indent: "0rem",
+  },
+  {
+    text: "return hiringProfiles;",
+    color: "text-[#A8A8A8]",
+    indent: "0rem",
+  },
+];
+
+const secondaryCode = [
+  "function evaluateCandidate(candidate) {",
+  "  const assessment = candidate.assessment;",
+  "  const skills = candidate.skills;",
+  "",
+  "  return {",
+  "    technicalScore: assessment.score,",
+  "    strengths: skills.strengths,",
+  "    projects: candidate.projects,",
+  "  };",
+  "}",
+  "",
+  "const shortlist = rank(results);",
+  "const profiles = shortlist.map(evaluateCandidate);",
+];
+
+export default function CompanyLogin() {
+  const navigate = useNavigate();
+
+  const [showPassword, setShowPassword] =
+    useState(false);
+
+  const [showIntro, setShowIntro] =
+    useState(true);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setShowIntro(false);
+    }, 1900);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-bg text-primary">
+
+      <AnimatePresence mode="wait">
+
+        {/* =================================================
+            INTRO
+        ================================================= */}
+
+        {showIntro && (
+          <motion.div
+            key="intro"
+            initial={{
+              opacity: 1,
+            }}
+            exit={{
+              opacity: 0,
+              transition: {
+                duration: 0.7,
+                ease: [
+                  0.22,
+                  1,
+                  0.36,
+                  1,
+                ],
+              },
+            }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-[#121212]"
+          >
+
+            <motion.div
+              initial={{
+                scale: 0.55,
+                opacity: 0,
+              }}
+              animate={{
+                scale: [
+                  0.55,
+                  1.05,
+                  1,
+                ],
+                opacity: [
+                  0,
+                  0.32,
+                  0.16,
+                ],
+              }}
+              transition={{
+                duration: 1.55,
+                ease: [
+                  0.22,
+                  1,
+                  0.36,
+                  1,
+                ],
+              }}
+              className="absolute h-[460px] w-[460px] rounded-full bg-accent/20 blur-[140px]"
+            />
+
+            <motion.div
+              initial={{
+                opacity: 0,
+                scale: 0.4,
+                y: 35,
+              }}
+              animate={{
+                opacity: 1,
+                scale: [
+                  0.4,
+                  1.08,
+                  1,
+                ],
+                y: [
+                  35,
+                  -3,
+                  0,
+                ],
+              }}
+              transition={{
+                duration: 1.25,
+                ease: [
+                  0.16,
+                  1,
+                  0.3,
+                  1,
+                ],
+              }}
+              className="relative"
+            >
+
+              <motion.div
+                initial={{
+                  opacity: 0,
+                }}
+                animate={{
+                  opacity: [
+                    0,
+                    0.8,
+                    0.25,
+                  ],
+                }}
+                transition={{
+                  duration: 1.35,
+                  times: [
+                    0,
+                    0.5,
+                    1,
+                  ],
+                }}
+                className="absolute inset-[-30%] rounded-full bg-accent/20 blur-[60px]"
+              />
+
+              <img
+                src="/achilles-logo.png"
+                alt="Achilles"
+                className="relative h-48 w-48 object-contain drop-shadow-[0_0_45px_rgba(218,34,75,0.25)] sm:h-56 sm:w-56"
+              />
+
+            </motion.div>
+
+          </motion.div>
+        )}
+
+        {/* =================================================
+            MAIN PAGE
+        ================================================= */}
+
+        {!showIntro && (
+          <motion.div
+            key="main"
+            initial={{
+              opacity: 0,
+            }}
+            animate={{
+              opacity: 1,
+            }}
+            transition={{
+              duration: 0.8,
+              ease: [
+                0.22,
+                1,
+                0.36,
+                1,
+              ],
+            }}
+            className="relative min-h-screen"
+          >
+
+            {/* =================================================
+                BACKGROUND
+            ================================================= */}
+
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+
+              <motion.div
+                className="absolute -left-48 top-1/2 h-[700px] w-[700px] -translate-y-1/2 rounded-full bg-accent/[0.08] blur-[170px]"
+                animate={{
+                  scale: [
+                    1,
+                    1.07,
+                    1,
+                  ],
+                  opacity: [
+                    0.5,
+                    0.75,
+                    0.5,
+                  ],
+                }}
+                transition={{
+                  duration: 12,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+
+              <motion.div
+                className="absolute -right-48 top-[15%] h-[600px] w-[600px] rounded-full bg-accent/[0.045] blur-[170px]"
+                animate={{
+                  x: [
+                    0,
+                    -35,
+                    0,
+                  ],
+                  y: [
+                    0,
+                    20,
+                    0,
+                  ],
+                  opacity: [
+                    0.25,
+                    0.4,
+                    0.25,
+                  ],
+                }}
+                transition={{
+                  duration: 15,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+
+              <div
+                className="absolute inset-0 opacity-[0.022]"
+                style={{
+                  backgroundImage: `
+                    linear-gradient(
+                      rgba(224,224,224,0.8) 1px,
+                      transparent 1px
+                    ),
+                    linear-gradient(
+                      90deg,
+                      rgba(224,224,224,0.8) 1px,
+                      transparent 1px
+                    )
+                  `,
+                  backgroundSize:
+                    "50px 50px",
+                }}
+              />
+
+              <div className="absolute inset-0 overflow-hidden">
+
+                <motion.div
+                  initial={{
+                    opacity: 0,
+                    x: -20,
+                  }}
+                  animate={{
+                    opacity: 0.42,
+                    x: [
+                      0,
+                      15,
+                      0,
+                    ],
+                  }}
+                  transition={{
+                    opacity: {
+                      duration: 1.2,
+                      delay: 0.4,
+                    },
+                    x: {
+                      duration: 18,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    },
+                  }}
+                  className="absolute left-[2%] top-[10%] hidden w-[700px] font-mono text-[13px] leading-8 tracking-wide blur-[0.2px] lg:block"
+                >
+
+                  {codeLines.map(
+                    (
+                      line,
+                      index
+                    ) => (
+                      <motion.div
+                        key={index}
+                        initial={{
+                          opacity: 0,
+                          x: -8,
+                        }}
+                        animate={{
+                          opacity: 1,
+                          x: 0,
+                        }}
+                        transition={{
+                          duration: 0.5,
+                          delay:
+                            0.7 +
+                            index *
+                              0.055,
+                        }}
+                        className={`${line.color} whitespace-nowrap`}
+                        style={{
+                          paddingLeft:
+                            line.indent,
+                        }}
+                      >
+
+                        <span className="mr-5 text-[#555]">
+                          {String(
+                            index + 1
+                          ).padStart(
+                            2,
+                            "0"
+                          )}
+                        </span>
+
+                        {line.text}
+
+                      </motion.div>
+                    )
+                  )}
+
+                </motion.div>
+
+                <motion.div
+                  initial={{
+                    opacity: 0,
+                  }}
+                  animate={{
+                    opacity: 0.2,
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    delay: 1,
+                  }}
+                  className="absolute right-[-5%] top-[8%] hidden w-[520px] rotate-[-2deg] font-mono text-[11px] leading-7 lg:block"
+                >
+
+                  {secondaryCode.map(
+                    (
+                      line,
+                      index
+                    ) => (
+                      <motion.div
+                        key={index}
+                        initial={{
+                          opacity: 0,
+                        }}
+                        animate={{
+                          opacity: 1,
+                        }}
+                        transition={{
+                          duration: 0.45,
+                          delay:
+                            1 +
+                            index *
+                              0.08,
+                        }}
+                        className={
+                          index === 0 ||
+                          index === 11
+                            ? "text-[#DA224B]/55"
+                            : "text-[#9E9E9E]"
+                        }
+                      >
+                        {line ||
+                          "\u00A0"}
+                      </motion.div>
+                    )
+                  )}
+
+                </motion.div>
+
+                <motion.div
+                  animate={{
+                    y: [
+                      0,
+                      -25,
+                      0,
+                    ],
+                    opacity: [
+                      0.08,
+                      0.16,
+                      0.08,
+                    ],
+                  }}
+                  transition={{
+                    duration: 8,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="absolute bottom-[18%] left-[34%] hidden font-mono text-[11px] text-[#DA224B] lg:block"
+                >
+                  &gt; rank.candidates()
+                </motion.div>
+
+                <motion.div
+                  animate={{
+                    y: [
+                      0,
+                      18,
+                      0,
+                    ],
+                    opacity: [
+                      0.05,
+                      0.12,
+                      0.05,
+                    ],
+                  }}
+                  transition={{
+                    duration: 10,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="absolute bottom-[12%] right-[31%] hidden font-mono text-[11px] text-[#9E9E9E] lg:block"
+                >
+                  &gt; review.results()
+                </motion.div>
+
+              </div>
+
+              <div className="absolute inset-0 bg-[#121212]/45" />
+
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_25%,rgba(18,18,18,0.55)_100%)]" />
+
+            </div>
+
+            {/* =================================================
+                MAIN GRID
+            ================================================= */}
+
+            <main className="relative z-10 grid min-h-screen grid-cols-1 lg:grid-cols-[1.12fr_0.88fr]">
+
+              {/* =================================================
+                  LEFT
+              ================================================= */}
+
+              <section className="relative flex items-center px-8 py-16 sm:px-12 lg:px-16 xl:px-20">
+
+                <div className="w-full max-w-3xl">
+
+                  <motion.div
+                    initial={{
+                      opacity: 0,
+                      scale: 0.9,
+                      y: 16,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      scale: 1,
+                      y: 0,
+                    }}
+                    transition={{
+                      duration: 0.7,
+                      delay: 0.08,
+                      ease: [
+                        0.22,
+                        1,
+                        0.36,
+                        1,
+                      ],
+                    }}
+                    className="relative mb-4 w-fit"
+                  >
+
+                    <div className="absolute inset-[-20%] rounded-full bg-accent/10 blur-[60px]" />
+
+                    <motion.img
+                      src="/achilles-logo.png"
+                      alt="Achilles Spartan helmet"
+                      className="relative h-36 w-36 object-contain drop-shadow-[0_0_40px_rgba(218,34,75,0.18)] xl:h-40 xl:w-40"
+                      whileHover={{
+                        scale: 1.025,
+                        y: -2,
+                      }}
+                      transition={{
+                        duration: 0.25,
+                      }}
+                    />
+
+                  </motion.div>
+
+                  <motion.div
+                    initial={{
+                      opacity: 0,
+                      x: -20,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      x: 0,
+                    }}
+                    transition={{
+                      duration: 0.7,
+                      delay: 0.16,
+                      ease: [
+                        0.22,
+                        1,
+                        0.36,
+                        1,
+                      ],
+                    }}
+                  >
+
+                    <h1
+                      className="whitespace-nowrap text-[3.8rem] leading-[0.9] tracking-[0.035em] text-primary sm:text-[4.5rem] lg:text-[4.7rem] xl:text-[5.25rem]"
+                      style={{
+                        fontFamily:
+                          '"Wide Latin", Georgia, serif',
+                      }}
+                    >
+                      ACHILLES
+                    </h1>
+
+                    <motion.div
+                      initial={{
+                        scaleX: 0,
+                        opacity: 0,
+                      }}
+                      animate={{
+                        scaleX: 1,
+                        opacity: 1,
+                      }}
+                      transition={{
+                        duration: 0.65,
+                        delay: 0.45,
+                        ease: [
+                          0.22,
+                          1,
+                          0.36,
+                          1,
+                        ],
+                      }}
+                      className="mt-6 h-[3px] w-[7.5rem] origin-left bg-accent"
+                    />
+
+                  </motion.div>
+
+                  <motion.div
+                    initial={{
+                      opacity: 0,
+                      y: 20,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                    }}
+                    transition={{
+                      duration: 0.7,
+                      delay: 0.28,
+                      ease: [
+                        0.22,
+                        1,
+                        0.36,
+                        1,
+                      ],
+                    }}
+                    className="mt-10 max-w-2xl"
+                  >
+
+                    <h2 className="text-4xl font-semibold leading-[1.04] tracking-[-0.035em] text-primary sm:text-5xl lg:text-[3.55rem]">
+
+                      Hire on
+                      <br />
+
+                      <span className="text-accent">
+                        demonstrated skill.
+                      </span>
+
+                    </h2>
+
+                    <p className="mt-6 max-w-[620px] text-base leading-7 text-secondary sm:text-lg">
+                      Go beyond resumes.
+                      Review real assessment
+                      performance, technical
+                      skills, and project evidence
+                      to discover candidates who
+                      can actually do the work.
+                    </p>
+
+                  </motion.div>
+
+                  <motion.div
+                    initial={{
+                      opacity: 0,
+                    }}
+                    animate={{
+                      opacity: 1,
+                    }}
+                    transition={{
+                      duration: 0.5,
+                      delay: 0.7,
+                    }}
+                    className="mt-14"
+                  >
+                    <span className="text-[11px] font-medium tracking-[0.24em] text-secondary/70">
+                      COMPANY ACCESS
+                    </span>
+                  </motion.div>
+
+                </div>
+
+              </section>
+
+              {/* =================================================
+                  LOGIN
+              ================================================= */}
+
+              <section className="relative flex min-h-screen items-center justify-end px-6 py-12 sm:px-10 lg:pl-10 lg:pr-3 xl:pl-12 xl:pr-5 2xl:pr-8">
+
+                <motion.div
+                  initial={{
+                    opacity: 0,
+                    x: 55,
+                    scale: 0.97,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    x: 0,
+                    scale: 1,
+                  }}
+                  transition={{
+                    duration: 0.8,
+                    delay: 0.18,
+                    ease: [
+                      0.22,
+                      1,
+                      0.36,
+                      1,
+                    ],
+                  }}
+                  className="w-full max-w-[610px]"
+                >
+
+                  <Card className="group relative overflow-hidden rounded-[22px] border border-white/[0.12] bg-[#242424]/45 p-8 shadow-[0_35px_100px_rgba(0,0,0,0.50)] backdrop-blur-[26px] backdrop-saturate-[135%] sm:p-10 xl:p-12">
+
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.045] via-transparent to-transparent" />
+
+                    <motion.div
+                      animate={{
+                        x: [
+                          "-20%",
+                          "120%",
+                        ],
+                        opacity: [
+                          0,
+                          0.12,
+                          0,
+                        ],
+                      }}
+                      transition={{
+                        duration: 8,
+                        repeat: Infinity,
+                        repeatDelay: 4,
+                        ease: "easeInOut",
+                      }}
+                      className="pointer-events-none absolute top-0 h-full w-[35%] bg-gradient-to-r from-transparent via-white/[0.06] to-transparent blur-2xl"
+                    />
+
+                    <motion.div
+                      initial={{
+                        scaleX: 0,
+                      }}
+                      animate={{
+                        scaleX: 1,
+                      }}
+                      transition={{
+                        duration: 0.8,
+                        delay: 0.45,
+                        ease: [
+                          0.22,
+                          1,
+                          0.36,
+                          1,
+                        ],
+                      }}
+                      className="absolute left-0 right-0 top-0 h-[3px] origin-left bg-accent"
+                    />
+
+                    {/* =================================================
+                        LOGIN HEADER
+                    ================================================= */}
+
+                    <motion.div
+                      initial={{
+                        opacity: 0,
+                        y: 10,
+                      }}
+                      animate={{
+                        opacity: 1,
+                        y: 0,
+                      }}
+                      transition={{
+                        duration: 0.5,
+                        delay: 0.38,
+                      }}
+                      className="relative z-10"
+                    >
+
+                      <p className="text-[11px] font-semibold tracking-[0.28em] text-accent">
+                        COMPANY ACCESS
+                      </p>
+
+                      <h2 className="mt-3 text-3xl font-semibold tracking-tight text-primary xl:text-[2.15rem]">
+                        Welcome back.
+                      </h2>
+
+                      <p className="mt-2 max-w-md text-sm leading-6 text-secondary">
+                        Sign in to review candidates and
+                        evaluate technical talent.
+                      </p>
+
+                    </motion.div>
+
+                    {/* =================================================
+                        FORM
+                    ================================================= */}
+
+                    <motion.form
+                      initial="hidden"
+                      animate="visible"
+                      variants={{
+                        hidden: {},
+                        visible: {
+                          transition: {
+                            staggerChildren: 0.08,
+                            delayChildren: 0.52,
+                          },
+                        },
+                      }}
+                      className="relative z-10 mt-9 space-y-5"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+
+                        navigate(
+                          "/company/company-dashboard"
+                        );
+                      }}
+                    >
+
+                      {/* EMAIL */}
+
+                      <motion.label
+                        variants={{
+                          hidden: {
+                            opacity: 0,
+                            y: 10,
+                          },
+                          visible: {
+                            opacity: 1,
+                            y: 0,
+                            transition: {
+                              duration: 0.4,
+                            },
+                          },
+                        }}
+                        className="block text-sm"
+                      >
+
+                        <span className="mb-2 block font-medium text-secondary">
+                          Company email
+                        </span>
+
+                        <input
+                          type="email"
+                          defaultValue="company@example.com"
+                          placeholder="you@company.com"
+                          autoComplete="email"
+                          className="w-full rounded-xl border border-white/[0.10] bg-[#121212]/55 px-4 py-3.5 text-sm text-primary outline-none backdrop-blur-md transition-all duration-200 placeholder:text-secondary/40 hover:border-white/[0.16] focus:border-accent focus:bg-[#121212]/70 focus:ring-4 focus:ring-accent/10"
+                        />
+
+                      </motion.label>
+
+                      {/* PASSWORD */}
+
+                      <motion.label
+                        variants={{
+                          hidden: {
+                            opacity: 0,
+                            y: 10,
+                          },
+                          visible: {
+                            opacity: 1,
+                            y: 0,
+                            transition: {
+                              duration: 0.4,
+                            },
+                          },
+                        }}
+                        className="block text-sm"
+                      >
+
+                        <div className="mb-2 flex items-center justify-between">
+
+                          <span className="font-medium text-secondary">
+                            Password
+                          </span>
+
+                          <button
+                            type="button"
+                            className="text-xs text-secondary transition-colors duration-200 hover:text-accent"
+                          >
+                            Forgot password?
+                          </button>
+
+                        </div>
+
+                        <div className="relative">
+
+                          <input
+                            type={
+                              showPassword
+                                ? "text"
+                                : "password"
+                            }
+                            defaultValue="password"
+                            placeholder="Enter your password"
+                            autoComplete="current-password"
+                            className="w-full rounded-xl border border-white/[0.10] bg-[#121212]/55 px-4 py-3.5 pr-12 text-sm text-primary outline-none backdrop-blur-md transition-all duration-200 placeholder:text-secondary/40 hover:border-white/[0.16] focus:border-accent focus:bg-[#121212]/70 focus:ring-4 focus:ring-accent/10"
+                          />
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setShowPassword(
+                                (previous) =>
+                                  !previous
+                              )
+                            }
+                            className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-secondary transition-all duration-200 hover:bg-white/[0.04] hover:text-primary"
+                            aria-label={
+                              showPassword
+                                ? "Hide password"
+                                : "Show password"
+                            }
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+
+                        </div>
+
+                      </motion.label>
+
+                      {/* KEEP SIGNED IN */}
+
+                      <motion.label
+                        variants={{
+                          hidden: {
+                            opacity: 0,
+                            y: 10,
+                          },
+                          visible: {
+                            opacity: 1,
+                            y: 0,
+                            transition: {
+                              duration: 0.4,
+                            },
+                          },
+                        }}
+                        className="flex cursor-pointer items-center gap-2 text-xs text-secondary"
+                      >
+
+                        <input
+                          type="checkbox"
+                          className="h-3.5 w-3.5 rounded border-white/10 bg-[#121212] accent-[#DA224B]"
+                        />
+
+                        Keep me signed in
+
+                      </motion.label>
+
+                      {/* CONTINUE */}
+
+                      <motion.div
+                        variants={{
+                          hidden: {
+                            opacity: 0,
+                            y: 10,
+                          },
+                          visible: {
+                            opacity: 1,
+                            y: 0,
+                            transition: {
+                              duration: 0.4,
+                            },
+                          },
+                        }}
+                      >
+
+                        <Button
+                          type="submit"
+                          className="group flex w-full items-center justify-center gap-2 py-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(218,34,75,0.24)]"
+                        >
+
+                          <span>
+                            Continue
+                          </span>
+
+                          <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+
+                        </Button>
+
+                      </motion.div>
+
+                    </motion.form>
+
+                    {/* =================================================
+                        GOOGLE
+                    ================================================= */}
+
+                    <motion.div
+                      initial={{
+                        opacity: 0,
+                        y: 8,
+                      }}
+                      animate={{
+                        opacity: 1,
+                        y: 0,
+                      }}
+                      transition={{
+                        delay: 0.92,
+                        duration: 0.4,
+                      }}
+                      className="relative z-10 mt-8"
+                    >
+
+                      <button
+                        type="button"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.09] bg-[#121212]/50 px-4 py-3 text-sm font-medium text-primary backdrop-blur-md transition-all duration-200 hover:border-white/[0.17] hover:bg-white/[0.04]"
+                      >
+
+                        <span className="text-sm font-semibold">
+                          G
+                        </span>
+
+                        Continue with Google
+
+                      </button>
+
+                    </motion.div>
+
+                    {/* =================================================
+                        COMPANY REGISTER
+                    ================================================= */}
+
+                    <motion.p
+                      initial={{
+                        opacity: 0,
+                      }}
+                      animate={{
+                        opacity: 1,
+                      }}
+                      transition={{
+                        delay: 1.06,
+                        duration: 0.4,
+                      }}
+                      className="relative z-10 mt-8 text-center text-sm text-secondary"
+                    >
+
+                      New company?{" "}
+
+                      <Link
+                        to="/company/register"
+                        className="font-medium text-accent transition-colors duration-200 hover:text-[#ED315C]"
+                      >
+                        Create an account
+                      </Link>
+
+                    </motion.p>
+
+                  </Card>
+
+                </motion.div>
+
+              </section>
+
+            </main>
+
+          </motion.div>
+        )}
+
+      </AnimatePresence>
+
+    </div>
+  );
+}

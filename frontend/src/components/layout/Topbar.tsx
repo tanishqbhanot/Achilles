@@ -1,27 +1,26 @@
-import { candidate } from "../../data/mockData";
-
 type TopbarProps = {
   title?: string;
   subtitle?: string;
 };
 
-export default function Topbar({ title, subtitle }: TopbarProps) {
+export default function Topbar({
+  title = "Dashboard",
+  subtitle,
+}: TopbarProps) {
   return (
-    <header className="flex items-center justify-between border-b border-white/5 px-8 py-5">
-      <div>
-        {title ? (
-          <h1 className="text-lg font-semibold text-primary">{title}</h1>
-        ) : (
-          <h1 className="text-lg font-semibold text-primary">
-            {candidate.name}
+    <header className="border-b border-white/[0.07] bg-[#0b0b0d]">
+      <div className="flex min-h-[82px] items-center px-5 md:px-8">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-white">
+            {title}
           </h1>
-        )}
-        {subtitle ? (
-          <p className="mt-0.5 text-sm text-secondary">{subtitle}</p>
-        ) : null}
-      </div>
-      <div className="rounded-full border border-white/10 bg-surface px-3 py-1.5 text-xs text-secondary">
-        Mock session
+
+          {subtitle && (
+            <p className="mt-1.5 text-sm text-white/40">
+              {subtitle}
+            </p>
+          )}
+        </div>
       </div>
     </header>
   );

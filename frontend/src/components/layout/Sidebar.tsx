@@ -1,77 +1,125 @@
 import { NavLink } from "react-router-dom";
+
 import {
   LayoutDashboard,
-  ClipboardCheck,
   Network,
-  MessageSquare,
+  FolderKanban,
+  ClipboardCheck,
   User,
-  Settings,
 } from "lucide-react";
-import { candidate } from "../../data/mockData";
 
 const links = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/assessment", label: "Assessment", icon: ClipboardCheck },
-  { to: "/skills", label: "Skills", icon: Network },
-  { to: "/interview", label: "Interview", icon: MessageSquare },
-  { to: "/profile", label: "Profile", icon: User },
+  {
+    to: "/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    end: true,
+  },
+  {
+    to: "/skills",
+    label: "Skills",
+    icon: Network,
+    end: false,
+  },
+  {
+    to: "/projects",
+    label: "Projects",
+    icon: FolderKanban,
+    end: false,
+  },
+  {
+    to: "/assessment/overview",
+    label: "Assessment",
+    icon: ClipboardCheck,
+    end: false,
+  },
+  {
+    to: "/profile",
+    label: "Profile",
+    icon: User,
+    end: false,
+  },
 ];
 
 export default function Sidebar() {
-  const initials = candidate.name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
   return (
-    <aside className="sticky top-0 flex h-screen w-[240px] shrink-0 flex-col border-r border-white/5 bg-surface">
-      <div className="px-6 py-6">
-        <p className="text-[11px] font-semibold tracking-[0.28em] text-secondary">
-          ACHILLES
-        </p>
-        <p className="mt-1 text-sm text-secondary">Technical assessment</p>
-      </div>
+    <aside className="sticky top-0 flex h-screen w-[252px] shrink-0 flex-col border-r border-white/[0.07] bg-[#111113]">
 
-      <nav className="flex flex-1 flex-col gap-1 px-3">
-        {links.map(({ to, label, icon: Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                isActive
-                  ? "bg-accent/15 font-medium text-accent"
-                  : "text-secondary hover:bg-white/5 hover:text-primary"
-              }`
-            }
-            end={to === "/dashboard"}
-          >
-            <Icon size={18} />
-            {label}
-          </NavLink>
-        ))}
-      </nav>
+      {/* =====================================================
+          BRAND
+      ===================================================== */}
 
-      <div className="mt-auto border-t border-white/5 px-3 py-4">
+      <div className="px-5 pb-7 pt-5">
         <NavLink
-          to="/profile"
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-secondary hover:bg-white/5 hover:text-primary"
+          to="/dashboard"
+          aria-label="Achilles dashboard"
+          className="group flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-white/[0.025]"
         >
-          <Settings size={18} />
-          Settings
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#da224b]/35 bg-[#171114]">
+            <img
+              src="/achilles-logo.png"
+              alt="Achilles"
+              className="h-9 w-9 object-contain"
+            />
+          </div>
+
+          <p className="text-[12px] font-semibold tracking-[0.28em] text-[#da224b]">
+            ACHILLES
+          </p>
         </NavLink>
-        <div className="mt-3 flex items-center gap-3 px-3 py-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-sm font-semibold text-white">
-            {initials}
-          </div>
-          <div>
-            <p className="text-sm text-primary">{candidate.name}</p>
-            <p className="text-xs text-secondary">VA</p>
-          </div>
-        </div>
       </div>
+
+      {/* =====================================================
+          NAVIGATION
+      ===================================================== */}
+
+      <nav className="flex flex-1 flex-col px-3">
+        <p className="px-3 pb-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/25">
+          Workspace
+        </p>
+
+        <div className="flex flex-col gap-1">
+          {links.map(
+            ({
+              to,
+              label,
+              icon: Icon,
+              end,
+            }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                className={({ isActive }) =>
+                  `group flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm transition-all duration-200 ${
+                    isActive
+                      ? "border border-[#da224b]/15 bg-[#241519] font-medium text-white shadow-[inset_3px_0_0_#da224b]"
+                      : "border border-transparent text-white/45 hover:bg-white/[0.025] hover:text-white/80"
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <Icon
+                      size={18}
+                      strokeWidth={
+                        isActive ? 2 : 1.7
+                      }
+                      className={
+                        isActive
+                          ? "text-[#da224b]"
+                          : "text-white/35 transition-colors group-hover:text-white/60"
+                      }
+                    />
+
+                    <span>{label}</span>
+                  </>
+                )}
+              </NavLink>
+            )
+          )}
+        </div>
+      </nav>
     </aside>
   );
 }

@@ -53,6 +53,7 @@ export default function ProjectSetup() {
 
   const [form, setForm] = useState(empty);
   const [saved, setSaved] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   function updateField(key: keyof typeof empty, value: string) {
     setForm((current) => ({
@@ -82,8 +83,19 @@ export default function ProjectSetup() {
     }, 2200);
   }
 
+  function handleContinue() {
+    if (isNavigating) return;
+
+    setIsNavigating(true);
+
+    window.setTimeout(() => {
+      navigate("/dashboard");
+    }, 500);
+  }
+
   return (
-    <div className="min-h-screen bg-[#0b0b0d] text-white">
+    <>
+      <div className="min-h-screen bg-[#0b0b0d] text-white">
       <div className="min-h-screen">
         <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-7 md:px-10">
           {/* Header */}
@@ -376,10 +388,11 @@ export default function ProjectSetup() {
           {/* Continue */}
           <div className="mt-10 flex justify-end border-t border-white/[0.07] py-6">
             <Button
-              onClick={() => navigate("/assessment")}
+              onClick={handleContinue}
+              disabled={isNavigating}
               className="group"
             >
-              Continue to Assessment
+              Continue to Dashboard
 
               <ArrowRight
                 size={16}
@@ -397,6 +410,20 @@ export default function ProjectSetup() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+
+      <AnimatePresence>
+        {isNavigating && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.45, ease: "easeInOut" }}
+            className="fixed inset-0 z-50 bg-[#0b0b0d]"
+            aria-hidden="true"
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 }
