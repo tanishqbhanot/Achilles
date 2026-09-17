@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useRef, useState, type MouseEvent } from "react";
 import { motion } from "framer-motion";
 
 import Card from "../../components/ui/Card";
@@ -16,18 +16,6 @@ export default function Dashboard() {
     x: 50,
     y: 35,
   });
-
-  const [showIntro, setShowIntro] = useState(true);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setShowIntro(false);
-    }, 1150);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, []);
 
   function handlePointerMove(event: MouseEvent<HTMLDivElement>) {
     const element = dashboardRef.current;
@@ -49,18 +37,52 @@ export default function Dashboard() {
       className="relative min-h-screen overflow-hidden bg-[#0b0b0d] text-white"
     >
       {/* =====================================================
-          AMBIENT CURSOR LIGHT
+          STATIC AMBIENT DEPTH
       ===================================================== */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 z-0"
         style={{
-          background: `radial-gradient(
-            720px circle at ${pointer.x}% ${pointer.y}%,
-            rgba(218, 34, 75, 0.12),
-            rgba(218, 34, 75, 0.045) 30%,
-            transparent 67%
-          )`,
+          background: `
+            radial-gradient(
+              850px circle at 50% 18%,
+              rgba(218, 34, 75, 0.045),
+              transparent 68%
+            )
+          `,
+        }}
+      />
+
+      {/* =====================================================
+          CURSOR LIGHT
+      ===================================================== */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-0"
+        style={{
+          background: `
+            radial-gradient(
+              220px circle at ${pointer.x}% ${pointer.y}%,
+              rgba(245, 9, 60, 0.18),
+              rgba(218, 34, 75, 0.10) 26%,
+              rgba(218, 34, 75, 0.035) 48%,
+              transparent 72%
+            )
+          `,
+          transition:
+            "background-position 180ms cubic-bezier(0.22, 1, 0.36, 1)",
+        }}
+      />
+
+      {/* Small concentrated light at cursor */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute z-0 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#da224b]/[0.06] blur-2xl"
+        style={{
+          left: `${pointer.x}%`,
+          top: `${pointer.y}%`,
+          transition:
+            "left 180ms cubic-bezier(0.22, 1, 0.36, 1), top 180ms cubic-bezier(0.22, 1, 0.36, 1)",
         }}
       />
 
@@ -69,16 +91,16 @@ export default function Dashboard() {
       ===================================================== */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0 opacity-[0.028]"
+        className="pointer-events-none absolute inset-0 z-0 opacity-[0.025]"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.35) 1px, transparent 1px)",
+            "linear-gradient(rgba(255,255,255,0.32) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.32) 1px, transparent 1px)",
           backgroundSize: "72px 72px",
         }}
       />
 
       {/* =====================================================
-          DASHBOARD CONTENT
+          CONTENT
       ===================================================== */}
       <div className="relative z-10">
         <Topbar
@@ -86,21 +108,7 @@ export default function Dashboard() {
           subtitle="Your skills and projects."
         />
 
-        <motion.main
-          initial={{
-            opacity: 0,
-            y: 18,
-          }}
-          animate={{
-            opacity: showIntro ? 0 : 1,
-            y: showIntro ? 18 : 0,
-          }}
-          transition={{
-            duration: 0.5,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-          className="flex flex-1 flex-col gap-7 overflow-auto px-5 py-7 md:px-8 md:py-8"
-        >
+        <main className="flex flex-1 flex-col gap-7 overflow-auto px-5 py-7 md:px-8 md:py-8">
           {/* =====================================================
               SKILLS
           ===================================================== */}
@@ -110,16 +118,15 @@ export default function Dashboard() {
               y: 12,
             }}
             animate={{
-              opacity: showIntro ? 0 : 1,
-              y: showIntro ? 12 : 0,
+              opacity: 1,
+              y: 0,
             }}
             transition={{
-              duration: 0.45,
-              delay: 0.12,
+              duration: 0.42,
               ease: "easeOut",
             }}
           >
-            <Card className="border-white/[0.08] bg-[#131013]">
+            <Card className="border-white/[0.08] bg-[#151315]">
               <div>
                 <div>
                   <h2 className="text-lg font-semibold text-white">
@@ -144,19 +151,19 @@ export default function Dashboard() {
           <motion.div
             initial={{
               opacity: 0,
-              y: 14,
+              y: 12,
             }}
             animate={{
-              opacity: showIntro ? 0 : 1,
-              y: showIntro ? 14 : 0,
+              opacity: 1,
+              y: 0,
             }}
             transition={{
-              duration: 0.48,
-              delay: 0.2,
+              duration: 0.42,
+              delay: 0.07,
               ease: "easeOut",
             }}
           >
-            <Card className="border-white/[0.08] bg-[#131013]">
+            <Card className="border-white/[0.08] bg-[#151315]">
               <div>
                 <div>
                   <h2 className="text-lg font-semibold text-white">
@@ -201,14 +208,10 @@ export default function Dashboard() {
                             }}
                             className="group relative overflow-hidden rounded-xl border border-white/[0.07] bg-[#111113] p-5 text-left transition-colors duration-200 hover:border-[#da224b]/25 hover:bg-[#181215]"
                           >
-                            {/* Hover light */}
+                            {/* Restrained hover light */}
                             <div
                               aria-hidden="true"
-                              className="pointer-events-none absolute -inset-24 opacity-0 blur-3xl transition-opacity duration-300 group-hover:opacity-100"
-                              style={{
-                                background:
-                                  "radial-gradient(circle, rgba(218,34,75,0.10), transparent 65%)",
-                              }}
+                              className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#da224b]/[0.045] blur-3xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                             />
 
                             <div className="relative z-10">
@@ -250,121 +253,8 @@ export default function Dashboard() {
               </div>
             </Card>
           </motion.div>
-        </motion.main>
+        </main>
       </div>
-
-      {/* =====================================================
-          ACHILLES DASHBOARD INTRO
-      ===================================================== */}
-      <motion.div
-        initial={{
-          opacity: 1,
-        }}
-        animate={{
-          opacity: showIntro ? 1 : 0,
-        }}
-        transition={{
-          duration: 0.35,
-          ease: "easeOut",
-        }}
-        className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-[#0b0b0d]"
-        aria-hidden="true"
-      >
-        <div className="relative flex h-36 w-36 items-center justify-center">
-          {/* Outer expanding ring */}
-          <motion.div
-            initial={{
-              scale: 0.55,
-              opacity: 0,
-            }}
-            animate={{
-              scale: [0.55, 1, 1.28],
-              opacity: [0, 0.65, 0],
-            }}
-            transition={{
-              duration: 0.95,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            className="absolute inset-0 rounded-full border border-[#da224b]/60"
-          />
-
-          {/* Inner pulse */}
-          <motion.div
-            initial={{
-              scale: 0.75,
-              opacity: 0,
-            }}
-            animate={{
-              scale: [0.75, 1, 1.08],
-              opacity: [0, 0.5, 0],
-            }}
-            transition={{
-              duration: 0.7,
-              delay: 0.08,
-              ease: "easeOut",
-            }}
-            className="absolute inset-5 rounded-full bg-[#da224b]/10 blur-xl"
-          />
-
-          {/* Logo container */}
-          <motion.div
-            initial={{
-              opacity: 0,
-              scale: 0.72,
-              clipPath: "inset(0 100% 0 0)",
-            }}
-            animate={{
-              opacity: [0, 1, 1, 0.96],
-              scale: [0.72, 1.04, 1],
-              clipPath: "inset(0 0% 0 0)",
-            }}
-            transition={{
-              duration: 0.85,
-              ease: [0.22, 1, 0.36, 1],
-            }}
-            className="relative flex h-24 w-24 items-center justify-center rounded-2xl border border-[#da224b]/35 bg-[#151518] shadow-[0_0_60px_rgba(218,34,75,0.12)]"
-          >
-            <motion.div
-              initial={{
-                opacity: 0,
-                x: -40,
-              }}
-              animate={{
-                opacity: [0, 0.7, 0],
-                x: 40,
-              }}
-              transition={{
-                duration: 0.55,
-                delay: 0.18,
-                ease: "easeInOut",
-              }}
-              className="absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-transparent via-[#da224b]/80 to-transparent blur-sm"
-            />
-
-            <motion.img
-              src="/achilles-logo.png"
-              alt=""
-              initial={{
-                scale: 0.85,
-                filter: "drop-shadow(0 0 0 rgba(218,34,75,0))",
-              }}
-              animate={{
-                scale: [0.85, 1.04, 1],
-                filter: [
-                  "drop-shadow(0 0 0 rgba(218,34,75,0))",
-                  "drop-shadow(0 0 18px rgba(218,34,75,0.8))",
-                  "drop-shadow(0 0 5px rgba(218,34,75,0.25))",
-                ],
-              }}
-              transition={{
-                duration: 0.8,
-                ease: "easeOut",
-              }}
-              className="h-16 w-16 object-contain"
-            />
-          </motion.div>
-        </div>
-      </motion.div>
     </div>
   );
 }

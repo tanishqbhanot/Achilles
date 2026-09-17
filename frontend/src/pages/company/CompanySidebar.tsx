@@ -1,57 +1,80 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
-  ClipboardCheck,
-  FolderKanban,
+  ArrowUpRight,
   LayoutDashboard,
-  Network,
-  User,
+  SlidersHorizontal,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
+type CompanyPlan = "basic" | "plus" | "pro";
+
+type CompanySidebarProps = {
+  plan?: CompanyPlan;
+};
+
+type CompanyLocationState = {
+  skills?: string[];
+  plan?: CompanyPlan;
+  companyName?: string;
+};
+
 const links = [
   {
-    to: "/dashboard",
+    to: "/company/dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
     end: true,
   },
   {
-    to: "/skills",
-    label: "Skills",
-    icon: Network,
-    end: false,
-  },
-  {
-    to: "/projects",
-    label: "Projects",
-    icon: FolderKanban,
-    end: false,
-  },
-  {
-    to: "/assessment/overview",
-    label: "Assessment",
-    icon: ClipboardCheck,
-    end: false,
-  },
-  {
-    to: "/profile",
-    label: "Profile",
-    icon: User,
+    to: "/company/candidate-preferences",
+    label: "Update Preferences",
+    icon: SlidersHorizontal,
     end: false,
   },
 ];
 
-export default function Sidebar() {
+export default function CompanySidebar({
+  plan = "pro",
+}: CompanySidebarProps) {
   const [logoStrike, setLogoStrike] = useState(0);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const locationState =
+    (location.state as CompanyLocationState | null) ?? null;
+
+  const currentSkills =
+    locationState?.skills && locationState.skills.length > 0
+      ? locationState.skills
+      : ["React", "Python"];
+
+  const companyName = locationState?.companyName;
+
+  const canUpgrade = plan === "basic" || plan === "plus";
+
+  const planLabel =
+    plan.charAt(0).toUpperCase() + plan.slice(1);
 
   function handleLogoClick() {
     setLogoStrike((value) => value + 1);
   }
 
+  function handleUpgrade() {
+    navigate("/company/subscription", {
+      state: {
+        skills: currentSkills,
+        plan,
+        companyName,
+      },
+    });
+  }
+
   return (
-    <aside className="flex w-[240px] shrink-0 flex-col border-r border-white/[0.07] bg-[#0b0b0d]">
+    <aside className="sticky top-0 flex h-screen w-[240px] shrink-0 self-start flex-col border-r border-white/[0.07] bg-[#0b0b0d]">
       <div className="flex h-full flex-col px-4 py-5">
+
         {/* =====================================================
             ACHILLES LOGO
         ===================================================== */}
@@ -78,7 +101,6 @@ export default function Sidebar() {
             >
               {/* =================================================
                   FIRST SWORD SLASH
-                  bottom-left -> top-right
               ================================================= */}
               {logoStrike > 0 && (
                 <>
@@ -154,7 +176,6 @@ export default function Sidebar() {
 
               {/* =================================================
                   SECOND SWORD SLASH
-                  top-left -> bottom-right
               ================================================= */}
               {logoStrike > 0 && (
                 <>
@@ -301,7 +322,7 @@ export default function Sidebar() {
               )}
 
               {/* =================================================
-                  LOGO
+                  LOGO IMAGE
               ================================================= */}
               <motion.img
                 src="/achilles-logo.png"
@@ -336,7 +357,8 @@ export default function Sidebar() {
             <p
               className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#da224b]"
               style={{
-                fontFamily: '"Wide Latin", "Arial Narrow", sans-serif',
+                fontFamily:
+                  '"Wide Latin", "Arial Narrow", sans-serif',
               }}
             >
               ACHILLES
@@ -348,55 +370,131 @@ export default function Sidebar() {
             NAVIGATION
         ===================================================== */}
         <nav className="space-y-1.5">
-          {links.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                [
-                  "group relative flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-200",
-                  isActive
-                    ? "bg-[#191114] text-white"
-                    : "text-white/45 hover:bg-white/[0.025] hover:text-white/75",
-                ].join(" ")
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  {isActive && (
-                    <motion.span
-                      layoutId="sidebar-active-indicator"
-                      transition={{
-                        type: "spring",
-                        stiffness: 420,
-                        damping: 32,
-                      }}
-                      className="absolute left-0 top-1/2 h-7 w-[2px] -translate-y-1/2 rounded-full bg-[#da224b] shadow-[0_0_12px_rgba(218,34,75,0.5)]"
+          {links.map(
+            ({ to, label, icon: Icon, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                state={{
+                  skills: currentSkills,
+                  plan,
+                  companyName,
+                  mode:
+                    to ===
+                    "/company/candidate-preferences"
+                      ? "update"
+                      : undefined,
+                }}
+                className={({ isActive }) =>
+                  [
+                    "group relative flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-200",
+                    isActive
+                      ? "bg-[#191114] text-white"
+                      : "text-white/45 hover:bg-white/[0.025] hover:text-white/75",
+                  ].join(" ")
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && (
+                      <motion.span
+                        layoutId="company-sidebar-active-indicator"
+                        transition={{
+                          type: "spring",
+                          stiffness: 420,
+                          damping: 32,
+                        }}
+                        className="absolute left-0 top-1/2 h-7 w-[2px] -translate-y-1/2 rounded-full bg-[#da224b] shadow-[0_0_12px_rgba(218,34,75,0.5)]"
+                      />
+                    )}
+
+                    <Icon
+                      size={17}
+                      strokeWidth={1.8}
+                      className={
+                        isActive
+                          ? "text-[#da224b]"
+                          : "text-white/30 transition-colors duration-200 group-hover:text-white/55"
+                      }
                     />
-                  )}
 
-                  <Icon
-                    size={17}
-                    strokeWidth={1.8}
-                    className={
-                      isActive
-                        ? "text-[#da224b]"
-                        : "text-white/30 transition-colors duration-200 group-hover:text-white/55"
-                    }
-                  />
-
-                  <span>{label}</span>
-                </>
-              )}
-            </NavLink>
-          ))}
+                    <span>{label}</span>
+                  </>
+                )}
+              </NavLink>
+            ),
+          )}
         </nav>
 
-        <div className="mt-auto border-t border-white/[0.07] pt-4">
-          <p className="px-3 text-[11px] uppercase tracking-[0.14em] text-white/20">
-            Achilles
-          </p>
+        {/* =====================================================
+            BOTTOM INFORMATION
+        ===================================================== */}
+        <div className="mt-auto">
+
+          {/* ===================================================
+              PROFILES LEFT
+          =================================================== */}
+          <div className="mb-5 px-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[9px] font-medium uppercase tracking-[0.16em] text-white/25">
+                Profiles Left
+              </p>
+
+              <p className="font-mono text-xs font-medium text-white/55">
+                120
+              </p>
+            </div>
+          </div>
+
+          {/* ===================================================
+              CURRENT PLAN
+          =================================================== */}
+          <div className="border-t border-white/[0.07] pt-4">
+            <div className="px-3">
+              <p className="mb-2 text-[9px] font-medium uppercase tracking-[0.16em] text-white/25">
+                Current Plan
+              </p>
+
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium text-white">
+                  {planLabel}
+                </p>
+
+                {canUpgrade ? (
+                  <button
+                    type="button"
+                    onClick={handleUpgrade}
+                    className="group flex items-center gap-1 text-[11px] font-medium text-[#da224b] transition-colors duration-200 hover:text-[#f03a61]"
+                  >
+                    Upgrade
+
+                    <ArrowUpRight
+                      size={12}
+                      strokeWidth={1.8}
+                      className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                    />
+                  </button>
+                ) : (
+                  <span className="text-[10px] text-white/25">
+                    Highest plan
+                  </span>
+                )}
+              </div>
+
+              {plan === "basic" && (
+                <p className="mt-1.5 text-[10px] leading-4 text-white/25">
+                  Upgrade to Plus for expanded candidate access.
+                </p>
+              )}
+
+              {plan === "plus" && (
+                <p className="mt-1.5 text-[10px] leading-4 text-white/25">
+                  Upgrade to Pro for full candidate access.
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </aside>

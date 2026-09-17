@@ -1,16 +1,16 @@
 import { useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
   ArrowRight,
-  ChevronDown,
   Search,
   X,
 } from "lucide-react";
 
 import Card from "../../components/ui/Card";
-import Button from "../../components/ui/Button";
 
-type PlanId = "basic" | "plus" | "pro";
+import CompanySidebar from "./CompanySidebar";
+
+type CompanyPlan = "basic" | "plus" | "pro";
 
 type CandidateProject = {
   name: string;
@@ -37,36 +37,8 @@ type Candidate = {
 
 type DashboardLocationState = {
   skills?: string[];
-  plan?: PlanId;
+  plan?: CompanyPlan;
 };
-
-const availableSkills = [
-  "React",
-  "Python",
-  "Java",
-  "JavaScript",
-  "TypeScript",
-  "Node.js",
-  "SQL",
-  "C++",
-  "C",
-  "C#",
-  "Go",
-  "AWS",
-  "MongoDB",
-  "PostgreSQL",
-  "Docker",
-  "Git",
-  "HTML",
-  "CSS",
-  "Next.js",
-  "Express.js",
-  "Spring Boot",
-  "Django",
-  "Flask",
-  "Angular",
-  "Vue.js",
-];
 
 const skillBenchmarks: Record<string, number> = {
   React: 72,
@@ -463,27 +435,16 @@ const candidates: Candidate[] = [
   },
 ];
 
-const profileLimits: Record<PlanId, number | null> = {
-  basic: 150,
-  plus: 250,
-  pro: null,
-};
-
-const planLabels: Record<PlanId, string> = {
-  basic: "Basic",
-  plus: "Plus",
-  pro: "Pro",
-};
-
 function getCandidateThreshold(
-  plan: PlanId,
+  plan: CompanyPlan,
   skill: string,
 ): number | null {
   if (plan === "pro") {
     return null;
   }
 
-  const benchmark = skillBenchmarks[skill];
+  const benchmark =
+    skillBenchmarks[skill];
 
   if (benchmark === undefined) {
     return plan === "basic" ? 80 : 90;
@@ -504,41 +465,56 @@ function getCandidateSkillScore(
 function candidateMatchesPlan(
   candidate: Candidate,
   selectedSkills: string[],
-  plan: PlanId,
+  plan: CompanyPlan,
 ): boolean {
   if (selectedSkills.length === 0) {
     return false;
   }
 
   if (plan === "pro") {
-    return selectedSkills.some((skill) => {
-      return typeof getCandidateSkillScore(candidate, skill) === "number";
-    });
+    return selectedSkills.some(
+      (skill) =>
+        typeof getCandidateSkillScore(
+          candidate,
+          skill,
+        ) === "number",
+    );
   }
 
-  return selectedSkills.every((skill) => {
-    const score = getCandidateSkillScore(candidate, skill);
+  return selectedSkills.every(
+    (skill) => {
+      const score =
+        getCandidateSkillScore(
+          candidate,
+          skill,
+        );
 
-    if (typeof score !== "number") {
-      return false;
-    }
+      if (typeof score !== "number") {
+        return false;
+      }
 
-    const threshold = getCandidateThreshold(plan, skill);
+      const threshold =
+        getCandidateThreshold(
+          plan,
+          skill,
+        );
 
-    if (threshold === null) {
-      return true;
-    }
+      if (threshold === null) {
+        return true;
+      }
 
-    return score <= threshold;
-  });
+      return score <= threshold;
+    },
+  );
 }
 
 export default function CompanyDashboard() {
-  const navigate = useNavigate();
   const location = useLocation();
 
   const locationState =
-    (location.state as DashboardLocationState | null) ?? null;
+    (location.state as
+      | DashboardLocationState
+      | null) ?? null;
 
   const initialSkills =
     locationState?.skills &&
@@ -546,775 +522,349 @@ export default function CompanyDashboard() {
       ? locationState.skills
       : ["React", "Python"];
 
-  const initialPlan = locationState?.plan ?? "plus";
+  const initialPlan =
+    locationState?.plan ?? "plus";
 
-  const [plan, setPlan] = useState<PlanId>(initialPlan);
-  const [selectedSkills, setSelectedSkills] =
+  const [plan] =
+    useState<CompanyPlan>(initialPlan);
+
+  const [selectedSkills] =
     useState<string[]>(initialSkills);
 
   const [candidateSearch, setCandidateSearch] =
     useState("");
 
-  const [showRequirements, setShowRequirements] =
-    useState(false);
-
-  const [skillSearch, setSkillSearch] = useState("");
-
   const [selectedCandidate, setSelectedCandidate] =
     useState<Candidate | null>(null);
 
-  const [profilesViewed, setProfilesViewed] =
-    useState(18);
+  const matchingCandidates =
+    useMemo(() => {
+      const query =
+        candidateSearch
+          .trim()
+          .toLowerCase();
 
-  const filteredSkillOptions = useMemo(() => {
-    const query = skillSearch.trim().toLowerCase();
+      return candidates
+        .filter((candidate) =>
+          candidateMatchesPlan(
+            candidate,
+            selectedSkills,
+            plan,
+          ),
+        )
+        .filter((candidate) => {
+          if (!query) {
+            return true;
+          }
 
-    if (!query) {
-      return availableSkills;
-    }
+          const nameMatch =
+            candidate.name
+              .toLowerCase()
+              .includes(query);
 
-    return availableSkills.filter((skill) =>
-      skill.toLowerCase().includes(query),
-    );
-  }, [skillSearch]);
+          const universityMatch =
+            candidate.university
+              .toLowerCase()
+              .includes(query);
 
-  const matchingCandidates = useMemo(() => {
-    const query = candidateSearch.trim().toLowerCase();
+          const locationMatch =
+            candidate.location
+              .toLowerCase()
+              .includes(query);
 
-    return candidates
-      .filter((candidate) =>
-        candidateMatchesPlan(
-          candidate,
-          selectedSkills,
-          plan,
-        ),
-      )
-      .filter((candidate) => {
-        if (!query) {
-          return true;
-        }
+          const skillMatch =
+            Object.keys(
+              candidate.skills,
+            ).some((skill) =>
+              skill
+                .toLowerCase()
+                .includes(query),
+            );
 
-        const nameMatch = candidate.name
-          .toLowerCase()
-          .includes(query);
-
-        const universityMatch = candidate.university
-          .toLowerCase()
-          .includes(query);
-
-        const locationMatch = candidate.location
-          .toLowerCase()
-          .includes(query);
-
-        const skillMatch = Object.keys(candidate.skills).some(
-          (skill) =>
-            skill.toLowerCase().includes(query),
+          return (
+            nameMatch ||
+            universityMatch ||
+            locationMatch ||
+            skillMatch
+          );
+        })
+        .sort(
+          (a, b) =>
+            b.assessment.overall -
+            a.assessment.overall,
         );
+    }, [
+      candidateSearch,
+      plan,
+      selectedSkills,
+    ]);
 
-        return (
-          nameMatch ||
-          universityMatch ||
-          locationMatch ||
-          skillMatch
-        );
-      })
-      .sort(
-        (a, b) =>
-          b.assessment.overall -
-          a.assessment.overall,
-      );
-  }, [candidateSearch, plan, selectedSkills]);
+ return (
+  <div className="flex min-h-screen bg-[#0b0b0d] text-white">
+    <CompanySidebar plan={plan} />
 
-  const toggleRequirementSkill = (skill: string) => {
-    setSelectedSkills((current) => {
-      if (current.includes(skill)) {
-        return current.filter(
-          (item) => item !== skill,
-        );
-      }
-
-      return [...current, skill];
-    });
-  };
-
-  const openCandidate = (candidate: Candidate) => {
-    const limit = profileLimits[plan];
-
-    if (limit !== null && profilesViewed >= limit) {
-      return;
-    }
-
-    setProfilesViewed((current) => current + 1);
-    setSelectedCandidate(candidate);
-  };
-
-  const handleUpgrade = (targetPlan: PlanId) => {
-    navigate("/company/subscription", {
-      state: {
-        skills: selectedSkills,
-        plan: targetPlan,
-        upgradeFrom: plan,
-      },
-    });
-  };
-
-  const profileLimit = profileLimits[plan];
-
-  const profilesRemaining =
-    profileLimit === null
-      ? null
-      : Math.max(profileLimit - profilesViewed, 0);
-
-  const usagePercentage =
-    profileLimit === null
-      ? 0
-      : Math.min(
-          (profilesViewed / profileLimit) * 100,
-          100,
-        );
-
-  return (
-    <div className="min-h-screen bg-[#0b0b0d] text-white">
-      <div className="flex min-h-screen">
-        {/* =================================================
-            SIDEBAR
-        ================================================= */}
-
-        <aside className="hidden w-[250px] shrink-0 border-r border-white/[0.07] bg-[#111113] lg:flex lg:flex-col">
-          <div className="border-b border-white/[0.07] px-5 py-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#da224b]/30 bg-[#171114]">
-                <img
-                  src="/achilles-logo.png"
-                  alt="Achilles"
-                  className="h-8 w-8 object-contain"
-                />
-              </div>
-
-              <div>
-                <p className="text-[12px] font-semibold tracking-[0.28em] text-[#da224b]">
-                  ACHILLES
-                </p>
-
-                <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/25">
-                  Company
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <nav className="flex-1 px-3 py-5">
-            <button
-              type="button"
-              className="flex w-full items-center rounded-xl border border-[#da224b]/15 bg-[#241519] px-3.5 py-3 text-left text-sm font-medium text-white shadow-[inset_3px_0_0_#da224b]"
-            >
-              Dashboard
-            </button>
-
-            <button
-              type="button"
-              onClick={() =>
-                setShowRequirements(
-                  (current) => !current,
-                )
-              }
-              className="mt-1.5 flex w-full items-center justify-between rounded-xl border border-transparent px-3.5 py-3 text-sm text-white/45 transition-colors hover:bg-white/[0.025] hover:text-white/80"
-            >
-              <span>Candidate requirements</span>
-
-              <ChevronDown
-                size={15}
-                className={`transition-transform ${
-                  showRequirements
-                    ? "rotate-180"
-                    : ""
-                }`}
-              />
-            </button>
-
-            <button
-              type="button"
-              onClick={() =>
-                document
-                  .getElementById("plan-section")
-                  ?.scrollIntoView({
-                    behavior: "smooth",
-                  })
-              }
-              className="mt-1.5 flex w-full items-center rounded-xl border border-transparent px-3.5 py-3 text-sm text-white/45 transition-colors hover:bg-white/[0.025] hover:text-white/80"
-            >
-              Subscription
-            </button>
-
-            <button
-              type="button"
-              className="mt-1.5 flex w-full items-center rounded-xl border border-transparent px-3.5 py-3 text-sm text-white/45 transition-colors hover:bg-white/[0.025] hover:text-white/80"
-            >
-              Company profile
-            </button>
-          </nav>
-
-          <div className="border-t border-white/[0.07] p-4">
-            <div className="rounded-xl border border-white/[0.07] bg-[#0f0f11] p-4">
-              <p className="text-xs text-white/30">
-                Current plan
-              </p>
-
-              <p className="mt-1 text-sm font-semibold text-white">
-                {planLabels[plan]}
-              </p>
-
-              {plan !== "pro" ? (
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleUpgrade(
-                      plan === "basic"
-                        ? "plus"
-                        : "pro",
-                    )
-                  }
-                  className="mt-4 text-xs font-medium text-[#da224b] transition-colors hover:text-[#ed315c]"
-                >
-                  Upgrade plan
-                </button>
-              ) : (
-                <p className="mt-4 text-xs text-white/25">
-                  Maximum access
-                </p>
-              )}
-            </div>
-          </div>
-        </aside>
-
-        {/* =================================================
+    <div className="min-w-0 flex-1">
+        {/* =====================================================
             MAIN
-        ================================================= */}
+        ===================================================== */}
 
         <main className="min-w-0 flex-1">
-          {/* Header */}
+          {/* HEADER */}
 
           <header className="sticky top-0 z-20 border-b border-white/[0.07] bg-[#0b0b0d]/95 backdrop-blur-xl">
-            <div className="flex min-h-[82px] items-center justify-between gap-6 px-5 md:px-8">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#da224b]">
-                  COMPANY DASHBOARD
-                </p>
-
-                <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">
-                  Find the right candidates.
-                </h1>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="hidden text-right sm:block">
-                  <p className="text-xs text-white/25">
-                    Current plan
-                  </p>
-
-                  <p className="text-sm font-medium text-white">
-                    {planLabels[plan]}
-                  </p>
-                </div>
-
-                {plan !== "pro" && (
-                  <Button
-                    type="button"
-                    onClick={() =>
-                      handleUpgrade(
-                        plan === "basic"
-                          ? "plus"
-                          : "pro",
-                      )
-                    }
-                    className="hidden sm:flex"
-                  >
-                    Upgrade
-                  </Button>
-                )}
-              </div>
+            <div className="flex min-h-[82px] items-center px-5 md:px-8">
+              <p className="text-[14px] font-bold uppercase tracking-[0.2em] text-[#da224b]">
+                COMPANY DASHBOARD
+              </p>
             </div>
           </header>
 
           <div className="mx-auto w-full max-w-[1380px] px-5 py-7 md:px-8 md:py-8">
             {/* =================================================
-                REQUIREMENTS EDITOR
-            ================================================= */}
-
-            {showRequirements && (
-              <Card className="mb-6 border-[#da224b]/20 bg-[#151116] p-5 sm:p-6">
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#da224b]">
-                      CANDIDATE REQUIREMENTS
-                    </p>
-
-                    <h2 className="mt-2 text-lg font-semibold text-white">
-                      Update the skills you're hiring for.
-                    </h2>
-
-                    <p className="mt-1.5 text-sm leading-6 text-white/35">
-                      Your candidate list updates automatically
-                      when these requirements change.
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setShowRequirements(false)
-                    }
-                    aria-label="Close requirements"
-                    className="self-start rounded-lg p-2 text-white/30 transition-colors hover:bg-white/[0.04] hover:text-white"
-                  >
-                    <X size={17} />
-                  </button>
-                </div>
-
-                <div className="relative mt-6">
-                  <Search
-                    size={16}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25"
-                  />
-
-                  <input
-                    value={skillSearch}
-                    onChange={(event) =>
-                      setSkillSearch(event.target.value)
-                    }
-                    placeholder="Search skills"
-                    className="w-full rounded-xl border border-white/[0.09] bg-[#0f0f11] py-3.5 pl-11 pr-4 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#da224b]/50 focus:ring-4 focus:ring-[#da224b]/10"
-                  />
-                </div>
-
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {filteredSkillOptions.map((skill) => {
-                    const selected =
-                      selectedSkills.includes(skill);
-
-                    return (
-                      <button
-                        key={skill}
-                        type="button"
-                        onClick={() =>
-                          toggleRequirementSkill(
-                            skill,
-                          )
-                        }
-                        className={`rounded-lg border px-3 py-2 text-sm transition-all ${
-                          selected
-                            ? "border-[#da224b]/40 bg-[#241519] text-white"
-                            : "border-white/[0.08] bg-[#111113] text-white/45 hover:border-white/[0.16] hover:text-white/75"
-                        }`}
-                      >
-                        {skill}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-6 border-t border-white/[0.07] pt-5">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/25">
-                    Active requirements
-                  </p>
-
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {selectedSkills.length > 0 ? (
-                      selectedSkills.map((skill) => (
-                        <button
-                          key={skill}
-                          type="button"
-                          onClick={() =>
-                            toggleRequirementSkill(
-                              skill,
-                            )
-                          }
-                          className="inline-flex items-center gap-2 rounded-lg border border-[#da224b]/30 bg-[#241519] px-3 py-2 text-sm text-white"
-                        >
-                          {skill}
-
-                          <X
-                            size={13}
-                            className="text-white/35"
-                          />
-                        </button>
-                      ))
-                    ) : (
-                      <p className="text-sm text-white/30">
-                        Select at least one skill.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            )}
-
-            {/* =================================================
-                SEARCH / REQUIREMENTS
+                MATCHING SKILLS + SEARCH
             ================================================= */}
 
             <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  {selectedSkills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="rounded-lg border border-[#da224b]/20 bg-[#171114] px-3 py-1.5 text-xs font-medium text-white/65"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-
-                <h2 className="mt-5 text-xl font-semibold text-white">
-                  Candidates matched to your requirements
-                </h2>
-
-                <p className="mt-1.5 text-sm text-white/35">
-                  {matchingCandidates.length} candidates currently visible.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="relative min-w-[260px]">
-                  <Search
-                    size={16}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25"
-                  />
-
-                  <input
-                    value={candidateSearch}
-                    onChange={(event) =>
-                      setCandidateSearch(
-                        event.target.value,
-                      )
-                    }
-                    placeholder="Search candidates"
-                    className="w-full rounded-xl border border-white/[0.09] bg-[#111113] py-3 pl-11 pr-4 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#da224b]/50 focus:ring-4 focus:ring-[#da224b]/10"
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowRequirements(
-                      (current) => !current,
-                    )
-                  }
-                  className="rounded-xl border border-white/[0.08] bg-[#131013] px-4 py-3 text-sm font-medium text-white/55 transition-all hover:border-white/[0.15] hover:text-white"
-                >
-                  Update requirements
-                </button>
-              </div>
-            </div>
-
-            {/* =================================================
-                USAGE
-            ================================================= */}
-
-            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              <Card className="border-white/[0.08] bg-[#131013] p-5">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/25">
-                  Subscription
-                </p>
-
-                <div className="mt-3 flex items-end justify-between gap-4">
-                  <div>
-                    <p className="text-2xl font-semibold text-white">
-                      {planLabels[plan]}
-                    </p>
-
-                    <p className="mt-1 text-sm text-white/30">
-                      Candidate access enabled
-                    </p>
-                  </div>
-
-                  {plan !== "pro" && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleUpgrade(
-                          plan === "basic"
-                            ? "plus"
-                            : "pro",
-                        )
-                      }
-                      className="text-sm font-medium text-[#da224b] hover:text-[#ed315c]"
-                    >
-                      Upgrade
-                    </button>
+                  {selectedSkills.map(
+                    (skill) => (
+                      <span
+                        key={skill}
+                        className="rounded-lg border border-[#da224b]/20 bg-[#171114] px-3 py-1.5 text-xs font-medium text-white/65"
+                      >
+                        {skill}
+                      </span>
+                    ),
                   )}
                 </div>
-              </Card>
 
-              <Card className="border-white/[0.08] bg-[#131013] p-5">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/25">
-                  Profile views
+                <p className="mt-4 text-sm text-white/35">
+                  Candidates matching the
+                  required skills.
                 </p>
+              </div>
 
-                <p className="mt-3 text-2xl font-semibold text-white">
-                  {profileLimit === null
-                    ? "Unlimited"
-                    : `${profilesViewed} / ${profileLimit}`}
-                </p>
+              <div className="relative min-w-[260px]">
+                <Search
+                  size={16}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25"
+                />
 
-                <p className="mt-1 text-sm text-white/30">
-                  {profileLimit === null
-                    ? "No monthly profile cap"
-                    : `${profilesRemaining} remaining this month`}
-                </p>
-
-                {profileLimit !== null && (
-                  <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-                    <div
-                      className="h-full rounded-full bg-[#da224b] transition-all duration-300"
-                      style={{
-                        width: `${usagePercentage}%`,
-                      }}
-                    />
-                  </div>
-                )}
-              </Card>
-
-              <Card className="border-white/[0.08] bg-[#131013] p-5">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/25">
-                  Requirements
-                </p>
-
-                <p className="mt-3 text-2xl font-semibold text-white">
-                  {selectedSkills.length}
-                </p>
-
-                <p className="mt-1 text-sm text-white/30">
-                  Active technical skills
-                </p>
-              </Card>
+                <input
+                  value={candidateSearch}
+                  onChange={(event) =>
+                    setCandidateSearch(
+                      event.target.value,
+                    )
+                  }
+                  placeholder="Search candidates"
+                  className="w-full rounded-xl border border-white/[0.09] bg-[#111113] py-3 pl-11 pr-4 text-sm text-white outline-none placeholder:text-white/25 transition-colors focus:border-[#da224b]/50 focus:ring-4 focus:ring-[#da224b]/10"
+                />
+              </div>
             </div>
 
             {/* =================================================
-                CANDIDATE LIST
+                CANDIDATES
             ================================================= */}
 
-            <section className="mt-8">
-              {matchingCandidates.length === 0 ? (
+            <section className="mt-7">
+              {matchingCandidates.length ===
+              0 ? (
                 <Card className="border-white/[0.08] bg-[#131013] p-10 text-center">
                   <h3 className="text-lg font-semibold text-white">
-                    No candidates match these requirements.
+                    No matching candidates
                   </h3>
 
                   <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-white/35">
-                    Try updating your required skills or upgrading
-                    your plan to access a broader candidate pool.
+                    No candidates currently
+                    match the selected
+                    technical requirements.
                   </p>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setShowRequirements(true)
-                    }
-                    className="mt-6 text-sm font-medium text-[#da224b] hover:text-[#ed315c]"
-                  >
-                    Update requirements
-                  </button>
                 </Card>
               ) : (
                 <div className="grid gap-4 xl:grid-cols-2">
-                  {matchingCandidates.map((candidate) => {
-                    const visibleScores =
-                      selectedSkills
-                        .map((skill) => ({
-                          skill,
-                          score:
-                            getCandidateSkillScore(
-                              candidate,
+                  {matchingCandidates.map(
+                    (candidate) => {
+                      const visibleScores =
+                        selectedSkills
+                          .map(
+                            (skill) => ({
                               skill,
-                            ),
-                        }))
-                        .filter(
-                          (
-                            item,
-                          ): item is {
-                            skill: string;
-                            score: number;
-                          } =>
-                            typeof item.score ===
-                            "number",
-                        );
-
-                    const strongestSkill =
-                      visibleScores.length > 0
-                        ? [...visibleScores].sort(
-                            (a, b) =>
-                              b.score - a.score,
-                          )[0]
-                        : null;
-
-                    const limitReached =
-                      profileLimit !== null &&
-                      profilesViewed >= profileLimit;
-
-                    return (
-                      <Card
-                        key={candidate.id}
-                        className="border-white/[0.08] bg-[#131013] p-6 transition-all duration-200 hover:border-white/[0.14] hover:bg-[#151116]"
-                      >
-                        <div className="flex items-start justify-between gap-5">
-                          <div className="flex min-w-0 items-start gap-4">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#da224b]/20 bg-[#241519] text-sm font-semibold text-[#da224b]">
-                              {candidate.name
-                                .split(" ")
-                                .map(
-                                  (part) =>
-                                    part[0] ?? "",
-                                )
-                                .join("")
-                                .slice(0, 2)}
-                            </div>
-
-                            <div className="min-w-0">
-                              <h3 className="truncate text-lg font-semibold text-white">
-                                {candidate.name}
-                              </h3>
-
-                              <p className="mt-1 truncate text-sm text-white/35">
-                                {candidate.university}
-                              </p>
-
-                              <p className="mt-1 text-xs text-white/25">
-                                {candidate.location} · Class of{" "}
-                                {candidate.graduationYear}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="shrink-0 text-right">
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/25">
-                              Overall
-                            </p>
-
-                            <p className="mt-1 font-mono text-lg font-semibold text-white">
-                              {candidate.assessment.overall}
-                            </p>
-                          </div>
-                        </div>
-
-                        <p className="mt-5 line-clamp-2 text-sm leading-6 text-white/40">
-                          {candidate.about}
-                        </p>
-
-                        {visibleScores.length > 0 && (
-                          <div className="mt-5 border-t border-white/[0.07] pt-5">
-                            <div className="flex flex-wrap gap-2">
-                              {visibleScores.map(
-                                ({ skill, score }) => (
-                                  <div
-                                    key={skill}
-                                    className="rounded-lg border border-white/[0.07] bg-[#111113] px-3 py-2"
-                                  >
-                                    <p className="text-[10px] text-white/25">
-                                      {skill}
-                                    </p>
-
-                                    <p className="mt-1 font-mono text-sm font-semibold text-white/75">
-                                      {score}
-                                    </p>
-                                  </div>
+                              score:
+                                getCandidateSkillScore(
+                                  candidate,
+                                  skill,
                                 ),
+                            }),
+                          )
+                          .filter(
+                            (
+                              item,
+                            ): item is {
+                              skill: string;
+                              score: number;
+                            } =>
+                              typeof item.score ===
+                              "number",
+                          );
+
+                      const strongestSkill =
+                        visibleScores.length >
+                        0
+                          ? [
+                              ...visibleScores,
+                            ].sort(
+                              (a, b) =>
+                                b.score -
+                                a.score,
+                            )[0]
+                          : null;
+
+                      return (
+                        <Card
+                          key={candidate.id}
+                          className="border-white/[0.08] bg-[#131013] p-6 transition-all duration-200 hover:border-white/[0.14] hover:bg-[#151116]"
+                        >
+                          <div className="flex items-start justify-between gap-5">
+                            <div className="flex min-w-0 items-start gap-4">
+                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#da224b]/20 bg-[#241519] text-sm font-semibold text-[#da224b]">
+                                {candidate.name
+                                  .split(" ")
+                                  .map(
+                                    (
+                                      part,
+                                    ) =>
+                                      part[0] ??
+                                      "",
+                                  )
+                                  .join("")
+                                  .slice(
+                                    0,
+                                    2,
+                                  )}
+                              </div>
+
+                              <div className="min-w-0">
+                                <h2 className="truncate text-lg font-semibold text-white">
+                                  {candidate.name}
+                                </h2>
+
+                                <p className="mt-1 truncate text-sm text-white/35">
+                                  {
+                                    candidate.university
+                                  }
+                                </p>
+
+                                <p className="mt-1 text-xs text-white/25">
+                                  {
+                                    candidate.location
+                                  }{" "}
+                                  · Class of{" "}
+                                  {
+                                    candidate.graduationYear
+                                  }
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="shrink-0 text-right">
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/25">
+                                Overall
+                              </p>
+
+                              <p className="mt-1 font-mono text-lg font-semibold text-white">
+                                {
+                                  candidate
+                                    .assessment
+                                    .overall
+                                }
+                              </p>
+                            </div>
+                          </div>
+
+                          <p className="mt-5 line-clamp-2 text-sm leading-6 text-white/40">
+                            {candidate.about}
+                          </p>
+
+                          {visibleScores.length >
+                            0 && (
+                            <div className="mt-5 border-t border-white/[0.07] pt-5">
+                              <div className="flex flex-wrap gap-2">
+                                {visibleScores.map(
+                                  ({
+                                    skill,
+                                    score,
+                                  }) => (
+                                    <div
+                                      key={
+                                        skill
+                                      }
+                                      className="rounded-lg border border-white/[0.07] bg-[#111113] px-3 py-2"
+                                    >
+                                      <p className="text-[10px] text-white/25">
+                                        {
+                                          skill
+                                        }
+                                      </p>
+
+                                      <p className="mt-1 font-mono text-sm font-semibold text-white/75">
+                                        {
+                                          score
+                                        }
+                                      </p>
+                                    </div>
+                                  ),
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="mt-5 flex items-center justify-between gap-4">
+                            <div>
+                              {strongestSkill && (
+                                <p className="text-xs text-white/30">
+                                  Strongest
+                                  match:{" "}
+                                  <span className="text-white/55">
+                                    {
+                                      strongestSkill.skill
+                                    }
+                                  </span>
+                                </p>
                               )}
                             </div>
-                          </div>
-                        )}
 
-                        <div className="mt-5 flex items-center justify-between gap-4">
-                          <div>
-                            {strongestSkill && (
-                              <p className="text-xs text-white/30">
-                                Strongest match:{" "}
-                                <span className="text-white/55">
-                                  {strongestSkill.skill}
-                                </span>
-                              </p>
-                            )}
-                          </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setSelectedCandidate(
+                                  candidate,
+                                )
+                              }
+                              className="group inline-flex items-center gap-2 text-sm font-medium text-white/55 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#da224b]/60"
+                            >
+                              View profile
 
-                          <button
-                            type="button"
-                            onClick={() =>
-                              openCandidate(candidate)
-                            }
-                            disabled={limitReached}
-                            className="group inline-flex items-center gap-2 text-sm font-medium text-white/55 transition-colors hover:text-white disabled:cursor-not-allowed disabled:text-white/20"
-                          >
-                            {limitReached
-                              ? "Profile limit reached"
-                              : "View profile"}
-
-                            {!limitReached && (
                               <ArrowRight
                                 size={15}
                                 className="text-[#da224b] transition-transform duration-200 group-hover:translate-x-1"
                               />
-                            )}
-                          </button>
-                        </div>
-                      </Card>
-                    );
-                  })}
+                            </button>
+                          </div>
+                        </Card>
+                      );
+                    },
+                  )}
                 </div>
               )}
             </section>
-
-            {/* =================================================
-                UPGRADE
-            ================================================= */}
-
-            {plan !== "pro" && (
-              <section
-                id="plan-section"
-                className="mt-10"
-              >
-                <Card className="border-[#da224b]/15 bg-[#171114] p-6 sm:p-7">
-                  <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#da224b]">
-                        NEED MORE ACCESS?
-                      </p>
-
-                      <h2 className="mt-2 text-xl font-semibold text-white">
-                        Upgrade your candidate access.
-                      </h2>
-
-                      <p className="mt-2 max-w-2xl text-sm leading-6 text-white/35">
-                        Unlock a wider candidate pool and a higher
-                        monthly profile viewing allowance.
-                      </p>
-                    </div>
-
-                    <Button
-                      type="button"
-                      onClick={() =>
-                        handleUpgrade(
-                          plan === "basic"
-                            ? "plus"
-                            : "pro",
-                        )
-                      }
-                      className="shrink-0"
-                    >
-                      {plan === "basic"
-                        ? "Upgrade to Plus"
-                        : "Upgrade to Pro"}
-                    </Button>
-                  </div>
-                </Card>
-              </section>
-            )}
           </div>
         </main>
 
-        {/* =================================================
+        {/* =====================================================
             CANDIDATE PROFILE DRAWER
-        ================================================= */}
+        ===================================================== */}
 
         {selectedCandidate && (
           <div className="fixed inset-0 z-50">
@@ -1335,32 +885,35 @@ export default function CompanyDashboard() {
                   </p>
 
                   <h2 className="mt-1 text-lg font-semibold text-white">
-                    {selectedCandidate.name}
+                    {
+                      selectedCandidate.name
+                    }
                   </h2>
                 </div>
 
                 <button
                   type="button"
                   onClick={() =>
-                    setSelectedCandidate(null)
+                    setSelectedCandidate(
+                      null,
+                    )
                   }
                   aria-label="Close candidate profile"
-                  className="rounded-lg p-2 text-white/30 transition-colors hover:bg-white/[0.04] hover:text-white"
+                  className="rounded-lg p-2 text-white/30 transition-colors hover:bg-white/[0.04] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#da224b]/50"
                 >
                   <X size={18} />
                 </button>
               </div>
 
               <div className="space-y-6 p-6">
-                {/* Candidate summary */}
-
                 <Card className="border-white/[0.08] bg-[#151116] p-5">
                   <div className="flex items-start gap-4">
                     <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[#da224b]/20 bg-[#241519] text-base font-semibold text-[#da224b]">
                       {selectedCandidate.name
                         .split(" ")
                         .map(
-                          (part) => part[0] ?? "",
+                          (part) =>
+                            part[0] ?? "",
                         )
                         .join("")
                         .slice(0, 2)}
@@ -1368,26 +921,35 @@ export default function CompanyDashboard() {
 
                     <div>
                       <h3 className="text-xl font-semibold text-white">
-                        {selectedCandidate.name}
+                        {
+                          selectedCandidate.name
+                        }
                       </h3>
 
                       <p className="mt-1 text-sm text-white/40">
-                        {selectedCandidate.university}
+                        {
+                          selectedCandidate.university
+                        }
                       </p>
 
                       <p className="mt-1 text-xs text-white/25">
-                        {selectedCandidate.location} · Class of{" "}
-                        {selectedCandidate.graduationYear}
+                        {
+                          selectedCandidate.location
+                        }{" "}
+                        · Class of{" "}
+                        {
+                          selectedCandidate.graduationYear
+                        }
                       </p>
                     </div>
                   </div>
 
                   <p className="mt-5 text-sm leading-6 text-white/40">
-                    {selectedCandidate.about}
+                    {
+                      selectedCandidate.about
+                    }
                   </p>
                 </Card>
-
-                {/* Assessment */}
 
                 <Card className="border-white/[0.08] bg-[#131013] p-5">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/25">
@@ -1395,11 +957,16 @@ export default function CompanyDashboard() {
                   </p>
 
                   <p className="mt-2 text-3xl font-semibold text-white">
-                    {selectedCandidate.assessment.overall}
+                    {
+                      selectedCandidate
+                        .assessment
+                        .overall
+                    }
                   </p>
 
                   <p className="mt-1 text-xs text-white/25">
-                    Overall assessment score
+                    Overall assessment
+                    score
                   </p>
 
                   <div className="mt-6 grid grid-cols-3 gap-3">
@@ -1409,7 +976,11 @@ export default function CompanyDashboard() {
                       </p>
 
                       <p className="mt-2 font-mono text-lg font-semibold text-white">
-                        {selectedCandidate.assessment.dsa}
+                        {
+                          selectedCandidate
+                            .assessment
+                            .dsa
+                        }
                       </p>
                     </div>
 
@@ -1419,7 +990,11 @@ export default function CompanyDashboard() {
                       </p>
 
                       <p className="mt-2 font-mono text-lg font-semibold text-white">
-                        {selectedCandidate.assessment.technical}
+                        {
+                          selectedCandidate
+                            .assessment
+                            .technical
+                        }
                       </p>
                     </div>
 
@@ -1429,13 +1004,15 @@ export default function CompanyDashboard() {
                       </p>
 
                       <p className="mt-2 font-mono text-lg font-semibold text-white">
-                        {selectedCandidate.assessment.project}
+                        {
+                          selectedCandidate
+                            .assessment
+                            .project
+                        }
                       </p>
                     </div>
                   </div>
                 </Card>
-
-                {/* Skills */}
 
                 <Card className="border-white/[0.08] bg-[#131013] p-5">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/25">
@@ -1446,33 +1023,36 @@ export default function CompanyDashboard() {
                     {Object.entries(
                       selectedCandidate.skills,
                     )
-                      .sort(([, a], [, b]) => b - a)
-                      .map(([skill, score]) => (
-                        <div key={skill}>
-                          <div className="flex items-center justify-between gap-4">
-                            <span className="text-sm font-medium text-white/65">
-                              {skill}
-                            </span>
+                      .sort(
+                        ([, a], [, b]) =>
+                          b - a,
+                      )
+                      .map(
+                        ([skill, score]) => (
+                          <div key={skill}>
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="text-sm font-medium text-white/65">
+                                {skill}
+                              </span>
 
-                            <span className="font-mono text-sm text-white/45">
-                              {score}
-                            </span>
-                          </div>
+                              <span className="font-mono text-sm text-white/45">
+                                {score}
+                              </span>
+                            </div>
 
-                          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-                            <div
-                              className="h-full rounded-full bg-[#da224b]"
-                              style={{
-                                width: `${score}%`,
-                              }}
-                            />
+                            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+                              <div
+                                className="h-full rounded-full bg-[#da224b]"
+                                style={{
+                                  width: `${score}%`,
+                                }}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ),
+                      )}
                   </div>
                 </Card>
-
-                {/* Projects */}
 
                 <Card className="border-white/[0.08] bg-[#131013] p-5">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/25">
@@ -1483,25 +1063,37 @@ export default function CompanyDashboard() {
                     {selectedCandidate.projects.map(
                       (project) => (
                         <div
-                          key={project.name}
+                          key={
+                            project.name
+                          }
                           className="rounded-xl border border-white/[0.07] bg-[#111113] p-4"
                         >
                           <h3 className="text-sm font-semibold text-white">
-                            {project.name}
+                            {
+                              project.name
+                            }
                           </h3>
 
                           <p className="mt-2 text-sm leading-6 text-white/35">
-                            {project.description}
+                            {
+                              project.description
+                            }
                           </p>
 
                           <div className="mt-4 flex flex-wrap gap-2">
                             {project.technologies.map(
-                              (technology) => (
+                              (
+                                technology,
+                              ) => (
                                 <span
-                                  key={technology}
+                                  key={
+                                    technology
+                                  }
                                   className="rounded-md border border-white/[0.07] px-2.5 py-1 text-xs text-white/35"
                                 >
-                                  {technology}
+                                  {
+                                    technology
+                                  }
                                 </span>
                               ),
                             )}

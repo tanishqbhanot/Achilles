@@ -21,7 +21,8 @@ import CompanyRegister from "./pages/company/CompanyRegister";
 import CompanyCandidatePreferences from "./pages/company/CompanyCandidatePreferences";
 import CompanySubscription from "./pages/company/CompanySubscription";
 import CompanyDashboard from "./pages/company/CompanyDashboard";
-
+import CompanyPayment from "./pages/company/CompanyPayment";
+import CompanyProfile from "./pages/company/CompanyProfile";
 /* =====================================================
    ONBOARDING
 ===================================================== */
@@ -29,6 +30,7 @@ import CompanyDashboard from "./pages/company/CompanyDashboard";
 import ResumeUpload from "./pages/onboarding/ResumeUpload";
 import SkillReview from "./pages/onboarding/SkillReview";
 import ProjectSetup from "./pages/onboarding/ProjectSetup";
+import ManualProject from "./pages/onboarding/ManualProject";
 
 /* =====================================================
    DASHBOARD
@@ -86,6 +88,8 @@ function App() {
             COMPANY AUTH
         ================================================= */}
 
+        
+
         <Route
           path="/company/login"
           element={<CompanyLogin />}
@@ -106,9 +110,17 @@ function App() {
           element={<CompanySubscription />}
         />
         <Route
-  path="/company/dashboard"
-  element={<CompanyDashboard />}
-/>
+          path="/company/dashboard"
+          element={<CompanyDashboard />}
+        />
+        <Route
+          path="/company/payment"
+          element={<CompanyPayment />}
+        />
+        <Route
+        path="/company/profile"
+        element={<CompanyProfile />}
+      />
         {/* =================================================
             ONBOARDING
         ================================================= */}
@@ -126,6 +138,11 @@ function App() {
         <Route
           path="/onboarding/projects"
           element={<ProjectSetup />}
+        />
+
+        <Route
+          path="/projects/manual-project"
+          element={<ManualProject />}
         />
 
         {/* =================================================
