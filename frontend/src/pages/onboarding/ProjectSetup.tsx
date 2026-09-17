@@ -1,85 +1,144 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ExternalLink, Plus } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, ExternalLink } from "lucide-react";
+import { motion } from "framer-motion";
 
 import Button from "../../components/ui/Button";
 import { useAppStore } from "../../store/appStore";
 
-const empty = {
-  name: "",
-  description: "",
-  technologies: "",
-  github: "",
-  contribution: "",
+type ProjectForm = {
+  name: string;
+  github: string;
 };
 
-const fields = [
+const emptyProject: ProjectForm = {
+  name: "",
+  github: "",
+};
+
+const initialProjects: ProjectForm[] = [
+  { ...emptyProject },
+  { ...emptyProject },
+  { ...emptyProject },
+];
+
+const meResponse = await fetch(
+  `${import.meta.env.VITE_API_URL ?? "http://localhost:5000/api"}/auth/me`,
   {
-    key: "name",
-    label: "Project name",
-    placeholder: "e.g. SpendWise",
-    type: "input",
+    method: "GET",
+    credentials: "include",
   },
-  {
-    key: "description",
-    label: "Description",
-    placeholder: "Describe what the project does",
-    type: "textarea",
-  },
-  {
-    key: "technologies",
-    label: "Technologies",
-    placeholder: "React, Node.js, MongoDB",
-    type: "input",
-  },
-  {
-    key: "github",
-    label: "GitHub URL",
-    placeholder: "https://github.com/username/project",
-    type: "input",
-  },
-  {
-    key: "contribution",
-    label: "Your contribution",
-    placeholder: "Describe what you personally built or owned",
-    type: "textarea",
-  },
-] as const;
+);
+
+const meResult = (await meResponse.json()) as {
+  success?: boolean;
+  user?: {
+    id: string;
+  };
+  message?: string;
+};
+
+if (!meResponse.ok || !meResult.user?.id) {
+  throw new Error(
+    meResult.message ?? "Unable to retrieve user information",
+  );
+}
+
+const userId = "6aab165845b99ec9c8e77bbf";
 
 export default function ProjectSetup() {
   const navigate = useNavigate();
-  const { projects, addProject } = useAppStore();
+  const { addProject } = useAppStore();
 
-  const [form, setForm] = useState(empty);
-  const [saved, setSaved] = useState(false);
+  const [projects, setProjects] = useState<ProjectForm[]>(
+    initialProjects,
+  );
 
-  function updateField(key: keyof typeof empty, value: string) {
-    setForm((current) => ({
-      ...current,
-      [key]: value,
-    }));
+  function updateProject(
+    index: number,
+    key: keyof ProjectForm,
+    value: string,
+  ) {
+    setProjects((current) =>
+      current.map((project, projectIndex) =>
+        projectIndex === index
+          ? {
+            ...project,
+            [key]: value,
+          }
+          : project,
+      ),
+    );
   }
 
-  function handleSaveProject() {
-    const name = form.name.trim();
+  function handleSaveProjects() {
+    projects.forEach((project) => {
+      const name = project.name.trim();
+      const github = project.github.trim();
 
-    if (!name) return;
+      if (!name || !github) return;
 
-    addProject({
-      name,
-      description: form.description.trim(),
-      technologies: form.technologies.trim(),
-      github: form.github.trim(),
-      contribution: form.contribution.trim(),
+      addProject({
+        name,
+        github,
+        description: "",
+        technologies: "",
+        contribution: "",
+      });
     });
+  }
 
-    setForm(empty);
-    setSaved(true);
+  const projectsAdded = projects.filter(
+    (project) =>
+      project.name.trim() && project.github.trim(),
+  ).length;
 
-    window.setTimeout(() => {
-      setSaved(false);
-    }, 2200);
+  async function handleSubmitProjects() {
+    const links = projects
+      .map((project) => project.github.trim())
+      .filter(Boolean);
+
+    // Minimum 1, maximum 3
+    if (links.length < 1) {
+      return;
+    }
+
+    if (links.length > 3) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://mounted-infrastructure-sacred-hierarchy.trycloudflare.com/${userId}/questions`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            links,
+          }),
+        },
+      );
+
+      const result = (await response.json()) as {
+        success?: boolean;
+        message?: string;
+      };
+
+      console.log("Project submission result:", result);
+
+      if (!response.ok) {
+        throw new Error(
+          result.message ?? "Unable to save projects",
+        );
+      }
+
+      navigate("/assessment");
+    } catch (error) {
+      console.error("Project submission failed:", error);
+    }
   }
 
   return (
@@ -136,14 +195,13 @@ export default function ProjectSetup() {
                 </p>
 
                 <h1 className="mt-3 text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
-                  Tell us what{" "}
-                  <span className="text-[#da224b]">you built.</span>
+                  Add your{" "}
+                  <span className="text-[#da224b]">projects.</span>
                 </h1>
 
                 <p className="mt-5 max-w-xl text-base leading-7 text-white/55">
-                  Add the projects that best represent your technical
-                  experience. These projects will help personalize your
-                  assessment.
+                  Add up to three projects and their GitHub
+                  repositories.
                 </p>
               </div>
 
@@ -153,113 +211,13 @@ export default function ProjectSetup() {
                 </p>
 
                 <p className="mt-1 text-3xl font-semibold text-white">
-                  {projects.length}
+                  {projectsAdded}
                 </p>
               </div>
             </div>
           </motion.section>
 
-          {/* Existing projects */}
-          <AnimatePresence>
-            {projects.length > 0 && (
-              <motion.section
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.3 }}
-                className="mt-12"
-              >
-                <div className="mb-5 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-[0.16em] text-white/40">
-                      Saved projects
-                    </p>
-
-                    <h2 className="mt-1 text-lg font-semibold text-white">
-                      Your work
-                    </h2>
-                  </div>
-
-                  <span className="text-xs text-white/40">
-                    {projects.length}{" "}
-                    {projects.length === 1 ? "project" : "projects"}
-                  </span>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  {projects.map((project, index) => (
-                    <motion.article
-                      key={project.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: 0.3,
-                        delay: index * 0.05,
-                      }}
-                      className="rounded-2xl border border-[#da224b]/20 bg-[#191114] p-5 shadow-[0_18px_45px_rgba(0,0,0,0.18)] transition-colors duration-200 hover:border-[#da224b]/30"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                          <h3 className="truncate text-base font-semibold text-white">
-                            {project.name}
-                          </h3>
-
-                          {project.description && (
-                            <p className="mt-2 line-clamp-3 text-sm leading-6 text-white/52">
-                              {project.description}
-                            </p>
-                          )}
-                        </div>
-
-                        {project.github && (
-                          <a
-                            href={project.github}
-                            target="_blank"
-                            rel="noreferrer"
-                            aria-label={`Open ${project.name} GitHub repository`}
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#da224b]/15 bg-[#201519] text-white/45 transition-colors hover:border-[#da224b]/40 hover:text-[#da224b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#da224b]/60"
-                          >
-                            <ExternalLink size={15} />
-                          </a>
-                        )}
-                      </div>
-
-                      {project.technologies && (
-                        <div className="mt-5 flex flex-wrap gap-2 border-t border-[#da224b]/10 pt-4">
-                          {project.technologies
-                            .split(",")
-                            .map((technology) => technology.trim())
-                            .filter(Boolean)
-                            .map((technology) => (
-                              <span
-                                key={technology}
-                                className="rounded-md border border-[#da224b]/10 bg-[#21171a] px-2.5 py-1.5 text-xs text-white/70"
-                              >
-                                {technology}
-                              </span>
-                            ))}
-                        </div>
-                      )}
-
-                      {project.contribution && (
-                        <div className="mt-4">
-                          <p className="text-xs font-medium text-white/70">
-                            Your contribution
-                          </p>
-
-                          <p className="mt-1.5 text-sm leading-6 text-white/48">
-                            {project.contribution}
-                          </p>
-                        </div>
-                      )}
-                    </motion.article>
-                  ))}
-                </div>
-              </motion.section>
-            )}
-          </AnimatePresence>
-
-          {/* Add project */}
+          {/* Projects */}
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -268,107 +226,95 @@ export default function ProjectSetup() {
           >
             <div className="overflow-hidden rounded-2xl border border-[#da224b]/20 bg-[#191114] shadow-[0_20px_55px_rgba(0,0,0,0.22)]">
               <div className="border-b border-[#da224b]/10 px-6 py-5 md:px-7">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#da224b]">
-                      New project
-                    </p>
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#da224b]">
+                  Projects
+                </p>
 
-                    <h2 className="mt-1.5 text-xl font-semibold text-white">
-                      Add a project
-                    </h2>
+                <h2 className="mt-1.5 text-xl font-semibold text-white">
+                  Your projects
+                </h2>
 
-                    <p className="mt-1.5 text-sm text-white/45">
-                      Enter the details below.
-                    </p>
-                  </div>
-                </div>
+                <p className="mt-1.5 text-sm text-white/45">
+                  Enter a project name and its GitHub repository.
+                </p>
               </div>
 
               <div className="px-6 py-6 md:px-7 md:py-7">
-                <div className="grid gap-5 md:grid-cols-2">
-                  {fields.map((field) => {
-                    const isWide =
-                      field.key === "description" ||
-                      field.key === "contribution";
+                <div className="flex flex-col gap-5">
+                  {projects.map((project, index) => (
+                    <div
+                      key={index}
+                      className="rounded-xl border border-white/[0.09] bg-[#111113] p-5"
+                    >
+                      <div className="mb-4 flex items-center justify-between">
+                        {/* <p className="text-sm font-medium text-white/80">
+                          Project {index + 1}
+                        </p> */}
 
-                    const value = form[field.key];
+                        {/* <ExternalLink
+                          size={15}
+                          className="text-white/30"
+                        /> */}
+                      </div>
 
-                    return (
-                      <label
-                        key={field.key}
-                        className={isWide ? "md:col-span-2" : ""}
-                      >
-                        <span className="mb-2 block text-sm font-medium text-white/80">
-                          {field.label}
+                      <div className="grid gap-5 md:grid-cols-2">
+                        <label>
+                          <span className="mb-2 block text-sm font-medium text-white/80">
+                            Project name
+                          </span>
 
-                          {field.key === "name" && (
-                            <span className="ml-1 text-[#da224b]">
-                              *
-                            </span>
-                          )}
-                        </span>
-
-                        {field.type === "textarea" ? (
-                          <textarea
-                            value={value}
-                            onChange={(e) =>
-                              updateField(field.key, e.target.value)
-                            }
-                            placeholder={field.placeholder}
-                            rows={4}
-                            className="w-full resize-none rounded-xl border border-white/[0.09] bg-[#111113] px-4 py-3 text-sm leading-6 text-white outline-none placeholder:text-white/28 transition-colors duration-200 focus:border-[#da224b]/60 focus:ring-1 focus:ring-[#da224b]/25"
-                          />
-                        ) : (
                           <input
                             type="text"
-                            value={value}
+                            value={project.name}
                             onChange={(e) =>
-                              updateField(field.key, e.target.value)
+                              updateProject(
+                                index,
+                                "name",
+                                e.target.value,
+                              )
                             }
-                            placeholder={field.placeholder}
+                            placeholder="Project name"
                             className="h-12 w-full rounded-xl border border-white/[0.09] bg-[#111113] px-4 text-sm text-white outline-none placeholder:text-white/28 transition-colors duration-200 focus:border-[#da224b]/60 focus:ring-1 focus:ring-[#da224b]/25"
                           />
-                        )}
-                      </label>
-                    );
-                  })}
+                        </label>
+
+                        <label>
+                          <span className="mb-2 block text-sm font-medium text-white/80">
+                            GitHub repository
+                          </span>
+
+                          <input
+                            type="url"
+                            value={project.github}
+                            onChange={(e) =>
+                              updateProject(
+                                index,
+                                "github",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="https://github.com/username/repository"
+                            className="h-12 w-full rounded-xl border border-white/[0.09] bg-[#111113] px-4 text-sm text-white outline-none placeholder:text-white/28 transition-colors duration-200 focus:border-[#da224b]/60 focus:ring-1 focus:ring-[#da224b]/25"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 <div className="mt-7 flex flex-col gap-4 border-t border-[#da224b]/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm text-white/40">
-                    You can add multiple projects.
+                    Add up to three projects.
                   </p>
 
                   <Button
                     variant="outline"
-                    onClick={handleSaveProject}
-                    className="group"
-                    disabled={!form.name.trim()}
+                    onClick={handleSaveProjects}
+                    disabled={projectsAdded === 0}
                   >
-                    {saved ? "Project saved" : "Save project"}
-
-                    {!saved && (
-                      <Plus
-                        size={16}
-                        className="ml-2 transition-transform duration-200 group-hover:rotate-90"
-                      />
-                    )}
+                    Save projects
                   </Button>
                 </div>
-
-                <AnimatePresence>
-                  {saved && (
-                    <motion.p
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="mt-4 text-sm text-[#da224b]"
-                    >
-                      Project added successfully.
-                    </motion.p>
-                  )}
-                </AnimatePresence>
               </div>
             </div>
           </motion.section>
@@ -376,7 +322,10 @@ export default function ProjectSetup() {
           {/* Continue */}
           <div className="mt-10 flex justify-end border-t border-white/[0.07] py-6">
             <Button
-              onClick={() => navigate("/assessment")}
+              onClick={() => {
+                handleSubmitProjects();
+                navigate("/assessment");
+              }}
               className="group"
             >
               Continue to Assessment
