@@ -266,41 +266,50 @@ class QuestionGenerator:
 
 
 
-REPO_URL = "https://github.com/Tejasisnothere/Artemis"   # <-- paste your repo here
-USER_ID = "person_123"                                         # <-- your knowledge-graph user id, if different
 
-def main():
-    print("Step 1: Extracting repo info...")
-    extractor = RepoExtractor(url=REPO_URL, user_id=USER_ID)
-    print("Repo:", extractor.repo_name)
-    print("Skills found:", extractor.skills)
-    print("Total files in repo:", len(extractor.paths))
+def DigRepo(user_id, repos:list)->dict:
+    # repos = ["https://github.com/Tejasisnothere/Artemis", "https://github.com/Tejasisnothere/NeuralNote"]
+    questions = []
+    source_path = []
+    for REPO_URL in repos:# <-- paste your repo here
+        USER_ID = user_id                                       # <-- your knowledge-graph user id, if different
+        print("Step 1: Extracting repo info...")
+        extractor = RepoExtractor(url=REPO_URL, user_id=USER_ID)
+        print("Repo:", extractor.repo_name)
+        print("Skills found:", extractor.skills)
+        print("Total files in repo:", len(extractor.paths))
 
-    print("\nStep 2: Selecting relevant paths via LLM...")
-    extractor.extract_paths()
-    print("Relevant paths:", extractor.relevant_paths)
+        print("\nStep 2: Selecting relevant paths via LLM...")
+        extractor.extract_paths()
+        print("Relevant paths:", extractor.relevant_paths)
 
-    print("\nStep 3: Narrowing down to final paths...")
-    extractor.choose_paths()
-    print("Chosen paths:", extractor.new_paths)
+        print("\nStep 3: Narrowing down to final paths...")
+        extractor.choose_paths()
+        print("Chosen paths:", extractor.new_paths)
 
-    print("\nStep 4: Fetching file contents (with chunking/truncation)...")
-    file_contents = extractor.fetch_file_contents(max_chars_per_file=3000)
-    for path, content in file_contents.items():
-        print(f"  - {path}: {len(content)} chars")
+        print("\nStep 4: Fetching file contents (with chunking/truncation)...")
+        file_contents = extractor.fetch_file_contents(max_chars_per_file=3000)
+        for path, content in file_contents.items():
+            print(f"  - {path}: {len(content)} chars")
 
-    print("\nStep 5: Generating interview question...")
-    qgen = QuestionGenerator(skills=extractor.skills, file_contents=file_contents)
-    record = qgen.generate()
+        print("\nStep 5: Generating interview question...")
+        qgen = QuestionGenerator(skills=extractor.skills, file_contents=file_contents)
+        record = qgen.generate()
 
-    print("\n================ GENERATED QUESTION ================")
-    print("Question:", record["question"])
-    print("Based on file:", record["source_path"])
-    print("======================================================")
+        print("\n================ GENERATED QUESTION ================")
+        print("Question:", record["question"])
+        print("Based on file:", record["source_path"])
+        print("======================================================")
 
-if __name__ == "__main__":
-    main()
+        questions.append(record['question'])
+        source_path.append(record['source_path'])
 
+    return {
+        'questions':questions,
+        'source_paths':source_path
+    }
+
+# DigRepo("6aab165845b99ec9c8e77bbf",["https://github.com/Tejasisnothere/Artemis", "https://github.com/Tejasisnothere/NeuralNote"])
 
 # class EvaluationResult(BaseModel):
 #     is_valid: bool = Field(
